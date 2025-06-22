@@ -1,1 +1,86 @@
-<p>survey works!</p>
+<div class="p-6 max-w-5xl mx-auto">
+    <p-card header="Create Survey" class="mb-6">
+        <form [formGroup]="surveyForm" (ngSubmit)="submitSurvey()" class="space-y-6">
+
+            <!-- Survey Title and Dropdowns -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <span class="p-float-label">
+          <input pInputText formControlName="title" id="title" class="w-full" />
+          <label for="title">Survey Title</label>
+        </span>
+
+                <span class="p-float-label">
+          <p-dropdown [options]="sites" formControlName="site_id" inputId="site_id" class="w-full" />
+          <label for="site_id">Site</label>
+        </span>
+
+                <span class="p-float-label">
+          <p-dropdown [options]="departments" formControlName="department" inputId="department" class="w-full" />
+          <label for="department">Department</label>
+        </span>
+
+                <span class="p-float-label">
+          <p-dropdown [options]="surveyTypes" formControlName="survey_type" inputId="survey_type" class="w-full" />
+          <label for="survey_type">Survey Type</label>
+        </span>
+            </div>
+
+            <!-- Description -->
+            <div>
+        <span class="p-float-label">
+          <textarea pInputTextarea formControlName="description" id="desc" rows="3" class="w-full"></textarea>
+          <label for="desc">Description</label>
+        </span>
+            </div>
+
+            <!-- Flags Section -->
+            <div class="flex items-center gap-4 flex-wrap">
+                <p-checkbox formControlName="is_location_based" binary label="Location Based"></p-checkbox>
+                <p-checkbox formControlName="is_image_required" binary label="Image Required"></p-checkbox>
+                <p-checkbox formControlName="is_active" binary label="Active"></p-checkbox>
+            </div>
+
+            <!-- Questions Section -->
+            <div>
+                <h3 class="text-lg font-semibold mb-2">Questions</h3>
+
+                <div *ngFor="let q of questions.controls; let i = index" [formGroupName]="i" class="border p-4 rounded mb-4">
+                    <!-- Question Info -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <input pInputText formControlName="text" placeholder="Question Text" class="w-full" />
+                        <p-dropdown [options]="questionTypes" formControlName="type" placeholder="Select Type" class="w-full" />
+
+                        <div class="flex items-center gap-2">
+                            <p-checkbox formControlName="has_marks" binary label="Has Marks"></p-checkbox>
+                            <input pInputNumber formControlName="marks" placeholder="Marks" class="w-full" />
+                        </div>
+
+                        <p-checkbox formControlName="is_required" binary label="Required"></p-checkbox>
+                    </div>
+
+                    <!-- Choices Section -->
+                    <div *ngIf="q.get('type')?.value === 'yesno' || q.get('type')?.value === 'choice'">
+                        <div class="mt-3">
+                            <p class="font-semibold mb-2">Choices</p>
+                            <div *ngFor="let c of getChoices(i).controls; let j = index" [formGroupName]="j" class="flex items-center gap-2 mb-2">
+                                <input pInputText formControlName="text" placeholder="Choice Text" class="flex-1" />
+                                <p-checkbox formControlName="is_correct" binary label="Correct?" class="shrink-0"></p-checkbox>
+                                <button pButton icon="pi pi-trash" class="p-button-sm p-button-danger" type="button" (click)="removeChoice(i, j)"></button>
+                            </div>
+                            <button pButton icon="pi pi-plus" label="Add Choice" class="mt-2" type="button" (click)="addChoice(i)"></button>
+                        </div>
+                    </div>
+
+                    <button pButton icon="pi pi-trash" class="mt-3 p-button-danger" label="Remove Question" type="button" (click)="removeQuestion(i)"></button>
+                </div>
+
+                <button pButton icon="pi pi-plus" label="Add Question" class="mt-2" type="button" (click)="addQuestion()"></button>
+            </div>
+
+            <!-- Submit -->
+            <div>
+                <button pButton type="submit" label="Submit Survey" icon="pi pi-check" class="w-full md:w-auto"></button>
+            </div>
+        </form>
+    </p-card>
+</div>

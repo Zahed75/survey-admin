@@ -56,12 +56,12 @@ export class AppMenu {
             {
                 label: 'Survey Management',
                 icon: 'pi pi-fw pi-list',
-                routerLink: ['/pages'],
+
                 items: [
                     {
                         label: 'Create Survey',
                         icon: 'pi pi-fw pi-plus',
-                        routerLink: []
+                        routerLink: ['/survey']
                     },
                      {
                         label: 'Create Questions',

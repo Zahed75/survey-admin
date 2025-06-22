@@ -3,6 +3,7 @@ import { AppLayout } from './app/layout/component/app.layout';
 import { Dashboard } from './app/pages/dashboard/dashboard';
 import { Landing } from './app/pages/landing/landing';
 import { Notfound } from './app/pages/notfound/notfound';
+import { SurveyComponent } from './app/components/survey/survey.component';
 
 export const appRoutes: Routes = [
     {
@@ -10,7 +11,10 @@ export const appRoutes: Routes = [
         component: AppLayout,
         children: [
             { path: '', component: Dashboard },
-           
+            {
+                path: 'survey',
+                component: SurveyComponent
+            },
             { path: 'pages', loadChildren: () => import('./app/pages/pages.routes') }
         ]
     },
