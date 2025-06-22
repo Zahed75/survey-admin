@@ -1,103 +1,217 @@
 import { Component } from '@angular/core';
-import { FormArray, FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common';
-
-// Correct PrimeNG imports
-import { InputTextModule } from 'primeng/inputtext';
+import { FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { MessageService } from 'primeng/api';
+import { Card } from 'primeng/card';
 import { DropdownModule } from 'primeng/dropdown';
-import { CheckboxModule } from 'primeng/checkbox';
-import { ButtonModule } from 'primeng/button';
-import { CardModule } from 'primeng/card';
-import { InputTextarea } from 'primeng/inputtextarea'; // Component, not module
+import { InputSwitch } from 'primeng/inputswitch';
+import { NgForOf, NgIf } from '@angular/common';
+import { Button } from 'primeng/button';
+import { InputText } from 'primeng/inputtext';
+import { InputNumber } from 'primeng/inputnumber';
+import { Checkbox } from 'primeng/checkbox';
 
 @Component({
     selector: 'app-survey',
-    standalone: true,
-    imports: [
-        CommonModule,
-        ReactiveFormsModule,
-        InputTextModule,
-        DropdownModule,
-        CheckboxModule,
-        ButtonModule,
-        CardModule,
-        InputTextarea // Imported as a component
-    ],
     templateUrl: './survey.component.html',
-    styleUrls: ['./survey.component.scss']
+    imports: [ReactiveFormsModule, Card, DropdownModule, InputSwitch, NgForOf, Button, InputText, NgIf, InputNumber, Checkbox],
+    providers: [MessageService]
 })
 export class SurveyComponent {
     surveyForm: FormGroup;
 
-    sites = [{ label: 'Site A', value: 1 }, { label: 'Site B', value: 2 }];
-    departments = [{ label: 'Sales', value: 1 }, { label: 'Support', value: 2 }];
-    surveyTypes = [{ label: 'Monthly', value: 1 }, { label: 'Adhoc', value: 2 }];
-    questionTypes = [
-        { label: 'Yes/No', value: 'yesno' },
-        { label: 'Image', value: 'image' },
-        { label: 'Choice', value: 'choice' },
-        { label: 'Text', value: 'text' }
+    // Mock data
+    departments = [
+        { id: 1, name: 'Software' },
+        { id: 2, name: 'Marketing' },
+        { id: 3, name: 'Operations' }
     ];
 
-    constructor(private fb: FormBuilder) {
+    surveyTypes = [
+        { id: 1, name: 'Inspection' },
+        { id: 2, name: 'Audit' },
+        { id: 3, name: 'Feedback' }
+    ];
+
+    questionTypes = [
+        { label: 'Text Answer', value: 'text' },
+        { label: 'Yes/No', value: 'yesno' },
+        { label: 'Multiple Choice', value: 'choice' },
+        { label: 'Image Upload', value: 'image' }
+    ];
+
+    targetTypes = [
+        { label: 'Role', value: 'role' },
+        { label: 'Department', value: 'department' },
+        { label: 'User', value: 'user' },
+        { label: 'Site', value: 'site' },
+        { label: 'All Users', value: 'all' }
+    ];
+
+    constructor(
+        private fb: FormBuilder,
+        private messageService: MessageService
+    ) {
         this.surveyForm = this.fb.group({
             title: ['', Validators.required],
             description: [''],
-            site_id: [null, Validators.required],
-            department: [null, Validators.required],
-            survey_type: [null, Validators.required],
-            is_location_based: [false],
-            is_image_required: [false],
-            is_active: [true],
-            created_by_user_id: [1],
-
+            department: ['', Validators.required],
+            surveyType: ['', Validators.required],
+            isLocationBased: [false],
+            isImageRequired: [false],
+            isActive: [true],
             questions: this.fb.array([]),
             targets: this.fb.array([])
         });
+    }
+
+    ngOnInit(): void {
+        this.addQuestion();
+        this.addTarget();
     }
 
     get questions(): FormArray {
         return this.surveyForm.get('questions') as FormArray;
     }
 
-    addQuestion() {
-        this.questions.push(
-            this.fb.group({
-                text: ['', Validators.required],
-                type: ['', Validators.required],
-                has_marks: [false],
-                marks: [null],
-                is_required: [false],
-                choices: this.fb.array([])
-            })
-        );
+    get targets(): FormArray {
+        return this.surveyForm.get('targets') as FormArray;
     }
 
-    removeQuestion(index: number) {
+    addQuestion(): void {
+        const questionGroup = this.fb.group({
+            text: ['', Validators.required],
+            type: ['', Validators.required],
+            hasMarks: [false],
+            marks: [0],
+            isRequired: [true],
+            choices: this.fb.array([]),
+            yesValue: [false], // For yes/no questions
+            noValue: [false] // For yes/no questions
+        });
+        this.questions.push(questionGroup);
+    }
+
+    removeQuestion(index: number): void {
         this.questions.removeAt(index);
     }
 
-    getChoices(qIndex: number): FormArray {
-        return this.questions.at(qIndex).get('choices') as FormArray;
+    getQuestionChoices(questionIndex: number): FormArray {
+        return this.questions.at(questionIndex).get('choices') as FormArray;
     }
 
-    addChoice(qIndex: number) {
-        this.getChoices(qIndex).push(
-            this.fb.group({
-                text: ['', Validators.required],
-                is_correct: [false]
-            })
-        );
+    addChoice(questionIndex: number): void {
+        const choiceGroup = this.fb.group({
+            text: ['', Validators.required],
+            isCorrect: [false]
+        });
+        this.getQuestionChoices(questionIndex).push(choiceGroup);
     }
 
-    removeChoice(qIndex: number, cIndex: number) {
-        this.getChoices(qIndex).removeAt(cIndex);
+    removeChoice(questionIndex: number, choiceIndex: number): void {
+        this.getQuestionChoices(questionIndex).removeAt(choiceIndex);
     }
 
-    submitSurvey() {
-        if (this.surveyForm.valid) {
-            console.log(this.surveyForm.value);
-            // Here you'd send this.surveyForm.value to your backend API
+    getYesNoControl(questionIndex: number, option: 'yes' | 'no'): FormControl {
+        return this.questions.at(questionIndex).get(`${option}Value`) as FormControl;
+    }
+
+    onQuestionTypeChange(questionIndex: number): void {
+        const question = this.questions.at(questionIndex);
+        const choices = question.get('choices') as FormArray;
+
+        // Reset choices array
+        while (choices.length !== 0) {
+            choices.removeAt(0);
         }
+
+        // For yes/no questions, add default options
+        if (question.get('type')?.value === 'yesno') {
+            question.patchValue({
+                yesValue: false,
+                noValue: false
+            });
+        }
+
+        // For image questions, disable marks
+        if (question.get('type')?.value === 'image') {
+            question.patchValue({
+                hasMarks: false,
+                marks: 0
+            });
+        }
+    }
+
+    addTarget(): void {
+        const targetGroup = this.fb.group({
+            targetType: ['', Validators.required],
+            roleName: [''],
+            department: [''],
+            user_id: [''],
+            site_id: ['']
+        });
+        this.targets.push(targetGroup);
+    }
+
+    removeTarget(index: number): void {
+        this.targets.removeAt(index);
+    }
+
+    onTargetTypeChange(targetIndex: number): void {
+        const target = this.targets.at(targetIndex);
+        // Reset all fields when target type changes
+        target.patchValue({
+            roleName: '',
+            department: '',
+            user_id: '',
+            site_id: ''
+        });
+    }
+
+    onSubmit(): void {
+        if (this.surveyForm.invalid) {
+            this.messageService.add({
+                severity: 'warn',
+                summary: 'Validation Error',
+                detail: 'Please fill all required fields correctly'
+            });
+            return;
+        }
+
+        // Prepare the data for submission
+        const formValue = {
+            ...this.surveyForm.value,
+            questions: this.surveyForm.value.questions.map((question: any) => {
+                if (question.type === 'yesno') {
+                    return {
+                        ...question,
+                        choices: [
+                            { text: 'Yes', isCorrect: question.yesValue },
+                            { text: 'No', isCorrect: question.noValue }
+                        ]
+                    };
+                }
+                return question;
+            })
+        };
+
+        console.log('Survey Data:', formValue);
+        this.messageService.add({
+            severity: 'success',
+            summary: 'Success',
+            detail: 'Survey created successfully!'
+        });
+
+        // In a real app, you would call your API service here
+        // this.surveyService.createSurvey(formValue).subscribe(...)
+    }
+
+    onCancel(): void {
+        this.messageService.add({
+            severity: 'info',
+            summary: 'Cancelled',
+            detail: 'Survey creation was cancelled'
+        });
+        // In a real app, you might navigate away
+        // this.router.navigate(['/surveys']);
     }
 }
