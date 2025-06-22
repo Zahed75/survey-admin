@@ -1,0 +1,99 @@
+<div class="department-container p-4">
+    <div class="card">
+        <h2>Department Management</h2>
+
+        <p-toast></p-toast>
+
+        <p-toolbar>
+            <ng-template pTemplate="left">
+                <button pButton
+                        label="Add Department"
+                        icon="pi pi-plus"
+                        class="p-button-success mr-2"
+                        (click)="showDialogToAdd()"></button>
+            </ng-template>
+
+            <ng-template pTemplate="right">
+        <span class="p-input-icon-left">
+          <i class="pi pi-search"></i>
+          <input pInputText type="text" placeholder="Search departments" />
+        </span>
+            </ng-template>
+        </p-toolbar>
+
+        <p-table [value]="departments"
+                 [(selection)]="selectedDepartment"
+                 [paginator]="true"
+                 [rows]="5"
+                 [rowsPerPageOptions]="[5,10,25]"
+                 dataKey="id"
+                 [responsive]="true"
+                 selectionMode="single"
+                 (onRowSelect)="onRowSelect($event)"
+                 currentPageReportTemplate="Showing {first} to {last} of {totalRecords} departments"
+                 styleClass="p-datatable-gridlines p-datatable-striped">
+
+            <ng-template pTemplate="header">
+                <tr>
+                    <th *ngFor="let col of cols" [style.width]="col.width">
+                        {{col.header}}
+                    </th>
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="body" let-department>
+                <tr [pSelectableRow]="department">
+                    <td>{{department.id}}</td>
+                    <td>{{department.name}}</td>
+                    <td>{{department.description}}</td>
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="emptymessage">
+                <tr>
+                    <td [attr.colspan]="cols.length">
+                        No departments found. Click "Add Department" to create one.
+                    </td>
+                </tr>
+            </ng-template>
+        </p-table>
+    </div>
+
+    <p-dialog [(visible)]="displayDialog"
+              [style]="{width: '450px'}"
+              header="{{newDepartment ? 'Add Department' : 'Edit Department'}}"
+              [modal]="true">
+        <div class="p-fluid">
+            <div class="p-field">
+                <label for="name">Name</label>
+                <input id="name" type="text" pInputText [(ngModel)]="department.name" />
+            </div>
+
+            <div class="p-field">
+                <label for="description">Description</label>
+                <textarea id="description" pInputTextarea [(ngModel)]="department.description" rows="3"></textarea>
+            </div>
+        </div>
+
+        <ng-template pTemplate="footer">
+            <button pButton
+                    label="Cancel"
+                    icon="pi pi-times"
+                    class="p-button-text"
+                    (click)="displayDialog=false"></button>
+
+            <button pButton
+                    *ngIf="!newDepartment"
+                    label="Delete"
+                    icon="pi pi-trash"
+                    class="p-button-danger"
+                    (click)="delete()"></button>
+
+            <button pButton
+                    label="Save"
+                    icon="pi pi-check"
+                    class="p-button-success"
+                    (click)="save()"></button>
+        </ng-template>
+    </p-dialog>
+</div>

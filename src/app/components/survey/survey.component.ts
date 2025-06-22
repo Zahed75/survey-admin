@@ -32,6 +32,7 @@ export class SurveyComponent {
         { id: 3, name: 'Feedback' }
     ];
 
+
     questionTypes = [
         { label: 'Text Answer', value: 'text' },
         { label: 'Yes/No', value: 'yesno' },

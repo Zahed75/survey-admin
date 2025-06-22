@@ -37,12 +37,12 @@ export class AppMenu {
                             {
                                 label: 'Role',
                                 icon: 'pi pi-fw pi-users',
-                                routerLink: ['']
+                                routerLink: ['/role']
                             },
                             {
                                 label: 'Department',
                                 icon: 'pi pi-fw pi-building',
-                                routerLink: ['']
+                                routerLink: ['/department']
                             },
                             {
                                 label: 'Survey-Type',
