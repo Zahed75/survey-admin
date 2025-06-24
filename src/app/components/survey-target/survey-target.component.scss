@@ -1,0 +1,89 @@
+/* Modal Styles */
+.modal-content {
+    .p-field {
+        margin-bottom: 1.5rem;
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--surface-700);
+            font-size: 0.875rem;
+        }
+    }
+
+    .p-dropdown {
+        width: 100%;
+        border-radius: 6px;
+        border: 1px solid var(--surface-300);
+        transition: all 0.3s ease;
+
+        &:hover {
+            border-color: var(--primary-color);
+        }
+
+        &:focus {
+            box-shadow: 0 0 0 0.2rem rgba(63, 81, 181, 0.25);
+        }
+    }
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 640px) {
+    .p-dialog {
+        .p-dialog-header {
+            padding: 1rem;
+        }
+
+        .p-dialog-content {
+            padding: 1rem;
+        }
+
+        .p-dialog-footer {
+            padding: 1rem;
+            button {
+                padding: 0.5rem 1rem;
+            }
+        }
+    }
+}
+
+/* Button styles */
+.p-button-plain {
+    color: var(--surface-600) !important;
+    background: transparent !important;
+    border: none !important;
+
+    &:hover {
+        background: var(--surface-100) !important;
+    }
+}
+
+/* Animation for modal */
+.p-dialog-mask {
+    backdrop-filter: blur(2px);
+    background-color: rgba(0, 0, 0, 0.4) !important;
+}
+
+.p-dialog {
+    transition: all 0.3s ease;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+
+    .p-dialog-header {
+        border-bottom: 1px solid var(--surface-100);
+        padding: 1.25rem;
+        background: var(--surface-50);
+    }
+
+    .p-dialog-content {
+        padding: 1.5rem;
+    }
+
+    .p-dialog-footer {
+        border-top: 1px solid var(--surface-100);
+        padding: 1.25rem;
+        background: var(--surface-50);
+    }
+}

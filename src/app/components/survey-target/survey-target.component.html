@@ -1,0 +1,136 @@
+<p>survey-target works!</p>
+<p-toast></p-toast>
+
+<div class="survey-target-container p-4">
+    <div class="card">
+        <h2>Survey Target Management</h2>
+
+        <p-toolbar>
+            <ng-template pTemplate="left">
+                <button pButton
+                        label="Add Target"
+                        icon="pi pi-plus"
+                        class="p-button-success mr-2"
+                        (click)="showDialogToAdd()"></button>
+
+                <button pButton
+                        label="Delete Selected"
+                        icon="pi pi-trash"
+                        class="p-button-danger"
+                        [disabled]="!selectedTargets || selectedTargets.length === 0"
+                        (click)="deleteSelectedTargets()"></button>
+            </ng-template>
+
+            <ng-template pTemplate="right">
+        <span class="p-input-icon-left">
+          <i class="pi pi-search"></i>
+          <input pInputText type="text" placeholder="Search targets" />
+        </span>
+            </ng-template>
+        </p-toolbar>
+
+        <p-table [value]="targets"
+                 [(selection)]="selectedTargets"
+                 [paginator]="true"
+                 [rows]="10"
+                 [rowsPerPageOptions]="[5,10,25]"
+                 dataKey="survey"
+                 [responsive]="true"
+                 selectionMode="multiple"
+                 currentPageReportTemplate="Showing {first} to {last} of {totalRecords} targets"
+                 styleClass="p-datatable-gridlines p-datatable-striped">
+
+            <ng-template pTemplate="header">
+                <tr>
+                    <th style="width: 3rem">
+                        <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+                    </th>
+                    <th>Survey ID</th>
+                    <th>Target Type</th>
+                    <th>Target Name</th>
+                    <th style="width: 10rem">Actions</th>
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="body" let-target>
+                <tr>
+                    <td>
+                        <p-tableCheckbox [value]="target"></p-tableCheckbox>
+                    </td>
+                    <td>{{target.survey}}</td>
+                    <td>{{target.target_type | titlecase}}</td>
+                    <td>{{target.role_name || target.department_name}}</td>
+                    <td>
+                        <div class="flex gap-2">
+                            <button pButton
+                                    icon="pi pi-pencil"
+                                    class="p-button-rounded p-button-text p-button-success"
+                                    (click)="editTarget(target)"></button>
+                            <button pButton
+                                    icon="pi pi-trash"
+                                    class="p-button-rounded p-button-text p-button-danger"
+                                    (click)="deleteTarget(target)"></button>
+                        </div>
+                    </td>
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="emptymessage">
+                <tr>
+                    <td [attr.colspan]="5">
+                        No targets found. Click "Add Target" to create one.
+                    </td>
+                </tr>
+            </ng-template>
+        </p-table>
+    </div>
+
+    <p-dialog [(visible)]="displayDialog"
+              [style]="{width: '500px'}"
+              [header]="newTarget ? 'Add New Target' : 'Edit Target'"
+              [modal]="true">
+        <div class="p-fluid">
+            <div class="p-field">
+                <label for="targetType">Target Type</label>
+                <p-dropdown [options]="targetTypes"
+                            [(ngModel)]="target.target_type"
+                            optionLabel="label"
+                            optionValue="value"
+                            (onChange)="onTargetTypeChange()"
+                            placeholder="Select target type"></p-dropdown>
+            </div>
+
+            <div class="p-field" *ngIf="target.target_type === 'role'">
+                <label for="roleName">Role Name</label>
+                <p-dropdown [options]="roles"
+                            [(ngModel)]="target.role_name"
+                            optionLabel="name"
+                            placeholder="Select role"></p-dropdown>
+            </div>
+
+            <div class="p-field" *ngIf="target.target_type === 'department'">
+                <label for="departmentName">Department Name</label>
+                <p-dropdown [options]="departments"
+                            [(ngModel)]="target.department_name"
+                            optionLabel="name"
+                            placeholder="Select department"></p-dropdown>
+            </div>
+        </div>
+
+        <ng-template pTemplate="footer">
+            <button pButton
+                    label="Cancel"
+                    icon="pi pi-times"
+                    class="p-button-text"
+                    (click)="displayDialog=false"></button>
+
+            <button pButton
+                    label="Save"
+                    icon="pi pi-check"
+                    class="p-button-success"
+                    (click)="save()"></button>
+        </ng-template>
+    </p-dialog>
+</div>
+
+

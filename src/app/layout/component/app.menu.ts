@@ -34,6 +34,7 @@ export class AppMenu {
                         label: 'Sites & Permission',
                         icon: 'pi pi-fw pi-users',
                         items: [
+
                             {
                                 label: 'Role',
                                 icon: 'pi pi-fw pi-users',
@@ -42,12 +43,13 @@ export class AppMenu {
                             {
                                 label: 'Department',
                                 icon: 'pi pi-fw pi-building',
-                                routerLink: ['/department']
+                                routerLink: ['/department']  // Ensure this is correct
                             },
+
                             {
-                                label: 'Survey-Type',
+                                label: 'Survey-Target',
                                 icon: 'pi pi-fw pi-window-maximize',
-                                routerLink: ['']
+                                routerLink: ['/survey-target'],
                             }
                         ]
                     }
@@ -63,11 +65,7 @@ export class AppMenu {
                         icon: 'pi pi-fw pi-plus',
                         routerLink: ['/survey']
                     },
-                     {
-                        label: 'Create Questions',
-                        icon: 'pi pi-fw pi-question',
-                        routerLink: []
-                    },
+
 
                 ]
             }

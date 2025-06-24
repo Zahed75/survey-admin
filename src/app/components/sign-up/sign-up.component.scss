@@ -1,0 +1,44 @@
+/* Custom styles for the sign-up component */
+:host {
+    display: block;
+}
+
+/* Override PrimeNG styles to match Tailwind */
+.p-password {
+    width: 100%;
+
+    input {
+        width: 100% !important;
+    }
+}
+
+/* Custom primary color to match your design */
+:root {
+    --primary-50: #f0f9ff;
+    --primary-100: #e0f2fe;
+    --primary-600: #0284c7;
+    --primary-700: #0369a1;
+}
+
+/* Button hover effect */
+.bg-primary-600:hover {
+    background-color: var(--primary-700) !important;
+}
+
+/* Input focus styles */
+.p-inputtext:enabled:focus {
+    box-shadow: 0 0 0 0.2rem rgba(2, 132, 199, 0.25);
+    border-color: var(--primary-600);
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+    .p-divider {
+        margin: 1rem 0;
+    }
+
+    .grid-cols-2 {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+}

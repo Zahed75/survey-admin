@@ -1,42 +1,54 @@
 import { Component } from '@angular/core';
-import { Toast } from 'primeng/toast';
-import { Toolbar } from 'primeng/toolbar';
-import { PrimeTemplate } from 'primeng/api';
-import { InputText } from 'primeng/inputtext';
-import { TableModule } from 'primeng/table';
-import { Dialog } from 'primeng/dialog';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Textarea } from 'primeng/textarea';
-import { ButtonDirective } from 'primeng/button';
-import { NgForOf, NgIf } from '@angular/common';
+import { MessageService } from 'primeng/api';
+import { ToastModule } from 'primeng/toast';
+import { TableModule } from 'primeng/table';
+import { ButtonModule } from 'primeng/button';
+import { DialogModule } from 'primeng/dialog';
+import { InputTextModule } from 'primeng/inputtext';
+import { InputTextarea } from 'primeng/inputtextarea';
+import { ToolbarModule } from 'primeng/toolbar';
 
 @Component({
     selector: 'app-department',
+    standalone: true,
+    imports: [
+        CommonModule,
+        FormsModule,
+        ToastModule,
+        TableModule,
+        ButtonModule,
+        DialogModule,
+        InputTextModule,
+        InputTextarea,
+        ToolbarModule
+    ],
     templateUrl: './department.component.html',
-    imports: [Toast, Toolbar, PrimeTemplate, InputText, TableModule, Dialog, FormsModule, Textarea, ButtonDirective, NgIf, NgForOf],
-    styleUrls: ['./department.component.scss']
+    styleUrls: ['./department.component.scss'],
+    providers: [MessageService]
 })
 export class DepartmentComponent {
     departments: any[] = [
         {
-            id: 1,
-            name: 'Software',
-            description: 'Software Team'
+            "id": 1,
+            "name": "Software",
+            "description": "Software Team"
         },
         {
-            id: 2,
-            name: 'Software',
-            description: 'Khai Dai Team'
+            "id": 2,
+            "name": "Software",
+            "description": "Khai Dai Team"
         },
         {
-            id: 3,
-            name: 'CG',
-            description: 'Test'
+            "id": 3,
+            "name": "CG",
+            "description": "Test"
         },
         {
-            id: 5,
-            name: 'Outlet',
-            description: 'Test'
+            "id": 5,
+            "name": "Outlet",
+            "description": "Test"
         }
     ];
 
@@ -51,6 +63,8 @@ export class DepartmentComponent {
     newDepartment: boolean = false;
     department: any = {};
 
+    constructor(private messageService: MessageService) {}
+
     showDialogToAdd() {
         this.newDepartment = true;
         this.department = {};
@@ -62,9 +76,19 @@ export class DepartmentComponent {
             // Add new department
             this.department.id = this.getNewId();
             this.departments.push(this.department);
+            this.messageService.add({
+                severity: 'success',
+                summary: 'Success',
+                detail: 'Department added successfully'
+            });
         } else {
             // Update existing department
             this.departments[this.findSelectedDeptIndex()] = this.department;
+            this.messageService.add({
+                severity: 'success',
+                summary: 'Success',
+                detail: 'Department updated successfully'
+            });
         }
 
         this.department = null;
@@ -73,21 +97,26 @@ export class DepartmentComponent {
 
     delete() {
         this.departments.splice(this.findSelectedDeptIndex(), 1);
+        this.messageService.add({
+            severity: 'success',
+            summary: 'Success',
+            detail: 'Department deleted successfully'
+        });
         this.department = null;
         this.displayDialog = false;
     }
 
     onRowSelect(event: any) {
         this.newDepartment = false;
-        this.department = { ...event.data };
+        this.department = {...event.data};
         this.displayDialog = true;
     }
 
     private findSelectedDeptIndex(): number {
-        return this.departments.findIndex((dept) => dept.id === this.selectedDepartment.id);
+        return this.departments.findIndex(dept => dept.id === this.selectedDepartment.id);
     }
 
     private getNewId(): number {
-        return Math.max(...this.departments.map((dept) => dept.id)) + 1;
+        return Math.max(...this.departments.map(dept => dept.id)) + 1;
     }
 }

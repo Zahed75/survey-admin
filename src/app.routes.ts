@@ -7,6 +7,8 @@ import { SurveyComponent } from './app/components/survey/survey.component';
 import { RoleComponent } from './app/components/role/role.component';
 import { DecimalPipe } from '@angular/common';
 import { DepartmentComponent } from './app/components/department/department.component';
+import { SurveyTargetComponent } from './app/components/survey-target/survey-target.component';
+import { SignUpComponent } from './app/components/sign-up/sign-up.component';
 
 export const appRoutes: Routes = [
     {
@@ -23,8 +25,16 @@ export const appRoutes: Routes = [
                 component:RoleComponent
             },
             {
-                path:'department',
-                component:DepartmentComponent
+                path: 'department',
+                component: DepartmentComponent
+            },
+            {
+                path:'survey-target',
+                component: SurveyTargetComponent
+            },
+            {
+                path:'sign-up',
+                component:SignUpComponent
             },
             { path: 'pages', loadChildren: () => import('./app/pages/pages.routes') }
         ]
