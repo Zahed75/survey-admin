@@ -9,6 +9,7 @@ import { DecimalPipe } from '@angular/common';
 import { DepartmentComponent } from './app/components/department/department.component';
 import { SurveyTargetComponent } from './app/components/survey-target/survey-target.component';
 import { SignUpComponent } from './app/components/sign-up/sign-up.component';
+import { SignInComponent } from './app/components/sign-in/sign-in.component';
 
 export const appRoutes: Routes = [
     {
@@ -35,6 +36,10 @@ export const appRoutes: Routes = [
             {
                 path:'sign-up',
                 component:SignUpComponent
+            },
+            {
+                path:'sign-in',
+               component:SignInComponent
             },
             { path: 'pages', loadChildren: () => import('./app/pages/pages.routes') }
         ]

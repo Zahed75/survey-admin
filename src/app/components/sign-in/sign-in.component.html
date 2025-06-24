@@ -1,1 +1,91 @@
-<p>sign-in works!</p>
+
+<p-toast position="top-right"></p-toast>
+
+<div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-lg">
+        <div class="text-center">
+            <h2 class="mt-6 text-3xl font-extrabold text-gray-900">
+                Sign in to your account
+            </h2>
+            <p class="mt-2 text-sm text-gray-600">
+                Don't have an account?
+                <a routerLink="/sign-up" class="font-medium text-primary-600 hover:text-primary-500">
+                    Sign up
+                </a>
+            </p>
+        </div>
+
+        <form class="mt-8 space-y-6" (ngSubmit)="onSubmit()">
+            <div class="rounded-md shadow-sm space-y-4">
+                <!-- Phone Number -->
+                <div class="space-y-1">
+                    <label for="phone_number" class="block text-sm font-medium text-gray-700">Phone Number</label>
+                    <div class="relative rounded-md shadow-sm">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <span class="text-gray-500">+88</span>
+                        </div>
+                        <input id="phone_number" name="phone_number" type="tel" required
+                               pInputText
+                               [(ngModel)]="credentials.phone_number"
+                               class="block w-full pl-12"
+                               placeholder="01710000000">
+                    </div>
+                </div>
+
+                <!-- Password -->
+                <div class="space-y-1">
+                    <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+                    <p-password [(ngModel)]="credentials.password"
+                                [toggleMask]="true"
+                                name="password"
+                                required
+                                placeholder="Enter password"
+                                [inputStyle]="{'width': '100%'}"
+                                [feedback]="false">
+                    </p-password>
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <p-checkbox [(ngModel)]="rememberMe"
+                                    name="rememberMe"
+                                    [binary]="true"
+                                    inputId="rememberMe">
+                        </p-checkbox>
+                        <label for="rememberMe" class="ml-2 block text-sm text-gray-900">
+                            Remember me
+                        </label>
+                    </div>
+
+                    <div class="text-sm">
+                        <a href="#" class="font-medium text-primary-600 hover:text-primary-500">
+                            Forgot password?
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <button pButton type="submit"
+                        label="Sign In"
+                        class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                </button>
+            </div>
+        </form>
+
+        <p-divider align="center">
+            <span class="text-sm text-gray-500">OR</span>
+        </p-divider>
+
+        <div class="grid grid-cols-2 gap-2">
+            <button pButton icon="pi pi-google"
+                    class="p-button-outlined p-button-secondary w-full">
+                <span class="ml-2">Google</span>
+            </button>
+            <button pButton icon="pi pi-microsoft"
+                    class="p-button-outlined p-button-secondary w-full">
+                <span class="ml-2">Microsoft</span>
+            </button>
+        </div>
+    </div>
+</div>
