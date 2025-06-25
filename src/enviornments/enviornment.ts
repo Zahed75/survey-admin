@@ -8,8 +8,8 @@
 
 // Development environment configuration
 
-export const environment = {
+export const environmentCentral = {
     production: false,
-    apiBaseUrl: 'http://127.0.0.1:8000', // Local development URL
+    apiBaseUrl: 'https://api.shwapno.app', // Local development URL
     wsHost: 'localhost:8000'
 };
