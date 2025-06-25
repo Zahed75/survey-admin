@@ -50,7 +50,6 @@
 //     { path: '**', redirectTo: '/notfound' }
 // ];
 
-
 import { Routes } from '@angular/router';
 import { AppLayout } from './app/layout/component/app.layout';
 import { Dashboard } from './app/pages/dashboard/dashboard';
@@ -62,23 +61,36 @@ import { DepartmentComponent } from './app/components/department/department.comp
 import { SurveyTargetComponent } from './app/components/survey-target/survey-target.component';
 import { SignUpComponent } from './app/components/sign-up/sign-up.component';
 import { SignInComponent } from './app/components/sign-in/sign-in.component';
+import { authGuard } from '../src/guard/auth.guard';
 
 export const appRoutes: Routes = [
+    // Public routes (no auth required)
+    { path: 'sign-in', component: SignInComponent },
+    { path: 'sign-up', component: SignUpComponent },
+    { path: 'landing', component: Landing },
+
+    // Protected routes (require authentication)
     {
         path: '',
         component: AppLayout,
+        canActivate: [authGuard],
         children: [
             { path: '', component: Dashboard },
             { path: 'survey', component: SurveyComponent },
             { path: 'role', component: RoleComponent },
             { path: 'department', component: DepartmentComponent },
             { path: 'survey-target', component: SurveyTargetComponent },
-            { path: 'pages', loadChildren: () => import('./app/pages/pages.routes') }
+            {
+                path: 'pages',
+                loadChildren: () => import('./app/pages/pages.routes'),
+                canActivate: [authGuard] // Guard for lazy-loaded module
+            }
         ]
     },
-    { path: 'sign-in', component: SignInComponent },
-    { path: 'sign-up', component: SignUpComponent },
-    { path: 'landing', component: Landing },
+
+    // Error routes
     { path: 'notfound', component: Notfound },
-    { path: '**', redirectTo: '/sign-in' } // Default to sign-in page
+
+    // Redirects
+    { path: '**', redirectTo: '/sign-in' } // Default to sign-in page for unknown routes
 ];
