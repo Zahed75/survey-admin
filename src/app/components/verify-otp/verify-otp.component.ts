@@ -28,6 +28,8 @@ export class VerifyOtpComponent {
         otp: null as number | null
     };
     isLoading = false;
+    countdown = 60; // Countdown for resend OTP
+    countdownInterval: any;
 
     constructor(
         private route: ActivatedRoute,
@@ -36,6 +38,7 @@ export class VerifyOtpComponent {
         private messageService: MessageService
     ) {
         this.otpData.phone_number = this.route.snapshot.queryParams['phone_number'] || '';
+        this.startCountdown();
     }
 
     onSubmit() {
@@ -61,7 +64,11 @@ export class VerifyOtpComponent {
                     summary: 'Success',
                     detail: 'OTP verified successfully!'
                 });
-                this.router.navigate(['/sign-in']);
+
+                // Redirect to sign-in after successful verification
+                setTimeout(() => {
+                    this.router.navigate(['/sign-in']);
+                }, 1500);
             },
             error: (error) => {
                 this.isLoading = false;
@@ -73,5 +80,47 @@ export class VerifyOtpComponent {
                 });
             }
         });
+    }
+
+    // resendOTP() {
+    //     if (this.countdown > 0) return;
+    //
+    //     this.isLoading = true;
+    //     this.authService.resendOTP(this.otpData.phone_number).subscribe({
+    //         next: (response) => {
+    //             this.isLoading = false;
+    //             this.messageService.add({
+    //                 severity: 'success',
+    //                 summary: 'Success',
+    //                 detail: response.message || 'OTP resent successfully!'
+    //             });
+    //             this.startCountdown();
+    //         },
+    //         error: (error) => {
+    //             this.isLoading = false;
+    //             const errorMessage = error.error?.message || 'Failed to resend OTP';
+    //             this.messageService.add({
+    //                 severity: 'error',
+    //                 summary: 'Error',
+    //                 detail: errorMessage
+    //             });
+    //         }
+    //     });
+    // }
+
+    startCountdown() {
+        this.countdown = 60;
+        this.countdownInterval = setInterval(() => {
+            this.countdown--;
+            if (this.countdown <= 0) {
+                clearInterval(this.countdownInterval);
+            }
+        }, 1000);
+    }
+
+    ngOnDestroy() {
+        if (this.countdownInterval) {
+            clearInterval(this.countdownInterval);
+        }
     }
 }
