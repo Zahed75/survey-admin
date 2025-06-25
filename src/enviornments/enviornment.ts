@@ -10,6 +10,6 @@
 
 export const environmentCentral = {
     production: false,
-    apiBaseUrl: 'https://api.shwapno.app', // Local development URL
-    wsHost: 'localhost:8000'
+    apiBaseUrl: 'https://api.shwapno.app',
+    // wsHost: 'localhost:8000'
 };
