@@ -1,23 +1,37 @@
-<p>role works!</p>
+<p-toast position="top-right"></p-toast>
+
 <div class="card p-4">
     <h2>Roles Management</h2>
 
-    <p-table [value]="roles" [columns]="cols"
-             [paginator]="true" [rows]="5"
+    <p-toolbar>
+        <ng-template pTemplate="left">
+            <button pButton label="Add New Role"
+                    icon="pi pi-plus"
+                    class="p-button-sm p-button-success"
+                    (click)="editRole({})"
+                    disabled></button>
+        </ng-template>
+        <ng-template pTemplate="right">
+      <span class="p-input-icon-left">
+        <i class="pi pi-search"></i>
+        <input pInputText type="text"
+               [(ngModel)]="searchText"
+               placeholder="Search roles..."
+               style="width: 250px"/>
+      </span>
+        </ng-template>
+    </p-toolbar>
+
+    <!-- Removed responsive property as it's deprecated -->
+    <p-table [value]="roles"
+             [columns]="cols"
+             [paginator]="true"
+             [rows]="10"
              [showCurrentPageReport]="true"
              currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
              [rowsPerPageOptions]="[5,10,25]"
+             [loading]="loading"
              styleClass="p-datatable-striped p-datatable-gridlines p-datatable-sm">
-
-        <ng-template pTemplate="caption">
-            <div class="flex justify-content-between align-items-center">
-                <button pButton label="Add New Role" icon="pi pi-plus" class="p-button-sm"></button>
-                <span class="p-input-icon-left">
-          <i class="pi pi-search"></i>
-          <input pInputText type="text" placeholder="Search roles..." style="width: 250px"/>
-        </span>
-            </div>
-        </ng-template>
 
         <ng-template pTemplate="header" let-columns>
             <tr>
@@ -33,8 +47,8 @@
             <tr>
                 <td>{{role.id}}</td>
                 <td>{{role.name}}</td>
-                <td>{{role.platform.name}}</td>
-                <td>{{role.platform.description}}</td>
+                <td>{{getProperty(role, 'platform.name')}}</td>
+                <td>{{getProperty(role, 'platform.description')}}</td>
                 <td>
                     <div class="flex gap-2">
                         <button pButton icon="pi pi-pencil"
@@ -51,7 +65,7 @@
         <ng-template pTemplate="emptymessage">
             <tr>
                 <td [attr.colspan]="cols.length + 1">
-                    No roles found. Click "Add New Role" to create one.
+                    {{loading ? 'Loading...' : 'No roles found'}}
                 </td>
             </tr>
         </ng-template>

@@ -1,52 +1,66 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
-import { ButtonDirective } from 'primeng/button';
-import { InputText } from 'primeng/inputtext';
-import { NgForOf } from '@angular/common';
+import { ButtonModule } from 'primeng/button';
+import { InputTextModule } from 'primeng/inputtext';
+import { ToastModule } from 'primeng/toast';
+import { MessageService } from 'primeng/api';
+import { RoleService } from '../../../services/role/role.service';
+import { Toolbar } from 'primeng/toolbar';
+import { ToolbarModule } from 'primeng/toolbar'; // Note: Changed from Toolbar to ToolbarModule
 
 @Component({
     selector: 'app-role',
+    standalone: true,
+    imports: [CommonModule, FormsModule,
+        TableModule, ButtonModule, InputTextModule,
+        ToastModule, Toolbar,
+        ToolbarModule
+    ],
     templateUrl: './role.component.html',
-    imports: [TableModule, ButtonDirective, InputText, NgForOf],
-    styleUrls: ['./role.component.scss']
-})
-export class RoleComponent {
-    roles: any[] = [
-        {
-            id: 1,
-            name: 'Admin',
-            platform: {
-                id: 1,
-                name: 'View Fish Inventory',
-                description: 'Heavy Products'
-            }
-        },
-        {
-            id: 2,
-            name: 'Manager',
-            platform: {
-                id: 1,
-                name: 'View Fish Inventory',
-                description: 'Heavy Products'
-            }
-        },
-        {
-            id: 3,
-            name: 'Admin',
-            platform: {
-                id: 1,
-                name: 'View Fish Inventory',
-                description: 'Heavy Products'
-            }
-        }
-    ];
+    styleUrls: ['./role.component.scss'],
+    providers: [MessageService]
 
+})
+
+export class RoleComponent implements OnInit {
+    roles: any[] = [];
     cols: any[] = [
         { field: 'id', header: 'ID' },
         { field: 'name', header: 'Role Name' },
         { field: 'platform.name', header: 'Platform' },
         { field: 'platform.description', header: 'Platform Description' }
     ];
+    loading: boolean = false;
+    searchText: string = '';
+
+    constructor(
+        private roleService: RoleService,
+        private messageService: MessageService
+    ) {}
+
+    ngOnInit() {
+        this.loadRoles();
+    }
+
+    loadRoles() {
+        this.loading = true;
+        this.roleService.getAllRoles().subscribe({
+            next: (response) => {
+                this.roles = response.data || [];
+                this.loading = false;
+            },
+            error: () => {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Error',
+                    detail: 'Failed to load roles'
+                });
+                this.loading = false;
+            }
+        });
+    }
 
     getProperty(obj: any, path: string) {
         return path.split('.').reduce((o, p) => o && o[p], obj);
@@ -54,12 +68,18 @@ export class RoleComponent {
 
     // Placeholder methods for UI actions
     editRole(role: any) {
-        console.log('Edit role:', role);
-        // Implement edit functionality later
+        this.messageService.add({
+            severity: 'info',
+            summary: 'Info',
+            detail: 'Edit functionality not implemented yet'
+        });
     }
 
     deleteRole(role: any) {
-        console.log('Delete role:', role);
-        // Implement delete functionality later
+        this.messageService.add({
+            severity: 'info',
+            summary: 'Info',
+            detail: 'Delete functionality not implemented yet'
+        });
     }
 }
