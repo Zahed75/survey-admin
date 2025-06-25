@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { InputTextModule } from 'primeng/inputtext';
 import { ButtonModule } from 'primeng/button';
 import { PasswordModule } from 'primeng/password';
@@ -14,16 +14,7 @@ import { AuthService } from '../../../services/auth/auth.service';
 @Component({
     selector: 'app-sign-in',
     standalone: true,
-    imports: [
-        CommonModule,
-        FormsModule,
-        InputTextModule,
-        ButtonModule,
-        PasswordModule,
-        DividerModule,
-        CheckboxModule,
-        ToastModule
-    ],
+    imports: [CommonModule, FormsModule, InputTextModule, ButtonModule, PasswordModule, DividerModule, CheckboxModule, ToastModule, RouterLink],
     templateUrl: './sign-in.component.html',
     styleUrls: ['./sign-in.component.scss'],
     providers: [MessageService]

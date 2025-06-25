@@ -62,11 +62,13 @@ import { SurveyTargetComponent } from './app/components/survey-target/survey-tar
 import { SignUpComponent } from './app/components/sign-up/sign-up.component';
 import { SignInComponent } from './app/components/sign-in/sign-in.component';
 import { authGuard } from '../src/guard/auth.guard';
+import { VerifyOtpComponent } from './app/components/verify-otp/verify-otp.component';
 
 export const appRoutes: Routes = [
     // Public routes (no auth required)
     { path: 'sign-in', component: SignInComponent },
     { path: 'sign-up', component: SignUpComponent },
+    { path: 'otp-verify', component: VerifyOtpComponent },
     { path: 'landing', component: Landing },
 
     // Protected routes (require authentication)
