@@ -63,6 +63,7 @@ import { SignUpComponent } from './app/components/sign-up/sign-up.component';
 import { SignInComponent } from './app/components/sign-in/sign-in.component';
 import { authGuard } from '../src/guard/auth.guard';
 import { VerifyOtpComponent } from './app/components/verify-otp/verify-otp.component';
+import { SurveyTypeComponent } from './app/components/survey-type/survey-type.component';
 
 export const appRoutes: Routes = [
     // Public routes (no auth required)
@@ -82,6 +83,7 @@ export const appRoutes: Routes = [
             { path: 'role', component: RoleComponent },
             { path: 'department', component: DepartmentComponent },
             { path: 'survey-target', component: SurveyTargetComponent },
+            { path: 'survey-type', component: SurveyTypeComponent },
             {
                 path: 'pages',
                 loadChildren: () => import('./app/pages/pages.routes'),

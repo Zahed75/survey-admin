@@ -8,12 +8,13 @@ import { AppMenuitem } from './app.menuitem';
     selector: 'app-menu',
     standalone: true,
     imports: [CommonModule, AppMenuitem, RouterModule],
-    template: `<ul class="layout-menu">
-        <ng-container *ngFor="let item of model; let i = index">
-            <li app-menuitem *ngIf="!item.separator" [item]="item" [index]="i" [root]="true"></li>
-            <li *ngIf="item.separator" class="menu-separator"></li>
-        </ng-container>
-    </ul> `
+    template: `
+        <ul class="layout-menu">
+            <ng-container *ngFor="let item of model; let i = index">
+                <li app-menuitem *ngIf="!item.separator" [item]="item" [index]="i" [root]="true"></li>
+                <li *ngIf="item.separator" class="menu-separator"></li>
+            </ng-container>
+        </ul> `
 })
 export class AppMenu {
     model: MenuItem[] = [];
@@ -45,12 +46,13 @@ export class AppMenu {
                                 icon: 'pi pi-fw pi-building',
                                 routerLink: ['/department']  // Ensure this is correct
                             },
-
                             {
-                                label: 'Survey-Target',
-                                icon: 'pi pi-fw pi-window-maximize',
-                                routerLink: ['/survey-target'],
+                                label:'Survey-Type',
+                                icon: 'pi pi-fw pi-venus',
+                                routerLink: ['/survey-type']
                             }
+
+
                         ]
                     }
                 ]
@@ -65,7 +67,11 @@ export class AppMenu {
                         icon: 'pi pi-fw pi-plus',
                         routerLink: ['/survey']
                     },
-
+                    {
+                        label: 'Survey-Target',
+                        icon: 'pi pi-fw pi-window-maximize',
+                        routerLink: ['/survey-target']
+                    }
 
                 ]
             }
