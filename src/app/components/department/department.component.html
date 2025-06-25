@@ -27,6 +27,7 @@
                  [rows]="5"
                  [rowsPerPageOptions]="[5,10,25]"
                  dataKey="id"
+                 [loading]="loading"
                  [responsive]="true"
                  selectionMode="single"
                  (onRowSelect)="onRowSelect($event)"
@@ -66,12 +67,12 @@
         <div class="p-fluid">
             <div class="p-field">
                 <label for="name">Name</label>
-                <input id="name" type="text" pInputText [(ngModel)]="department.name" />
+                <input id="name" type="text" pInputText [(ngModel)]="department.name" required />
             </div>
 
             <div class="p-field">
                 <label for="description">Description</label>
-                <textarea id="description" pInputTextarea [(ngModel)]="department.description" rows="3"></textarea>
+                <textarea id="description" pInputTextarea [(ngModel)]="department.description" rows="3" required></textarea>
             </div>
         </div>
 

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
@@ -9,6 +9,7 @@ import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { InputTextarea } from 'primeng/inputtextarea';
 import { ToolbarModule } from 'primeng/toolbar';
+import { DepartmentService } from '../../../services/department/department.service';
 
 @Component({
     selector: 'app-department',
@@ -28,30 +29,8 @@ import { ToolbarModule } from 'primeng/toolbar';
     styleUrls: ['./department.component.scss'],
     providers: [MessageService]
 })
-export class DepartmentComponent {
-    departments: any[] = [
-        {
-            "id": 1,
-            "name": "Software",
-            "description": "Software Team"
-        },
-        {
-            "id": 2,
-            "name": "Software",
-            "description": "Khai Dai Team"
-        },
-        {
-            "id": 3,
-            "name": "CG",
-            "description": "Test"
-        },
-        {
-            "id": 5,
-            "name": "Outlet",
-            "description": "Test"
-        }
-    ];
-
+export class DepartmentComponent implements OnInit {
+    departments: any[] = [];
     cols: any[] = [
         { field: 'id', header: 'ID', width: '100px' },
         { field: 'name', header: 'Department Name' },
@@ -62,8 +41,34 @@ export class DepartmentComponent {
     displayDialog: boolean = false;
     newDepartment: boolean = false;
     department: any = {};
+    loading: boolean = false;
 
-    constructor(private messageService: MessageService) {}
+    constructor(
+        private messageService: MessageService,
+        private departmentService: DepartmentService
+    ) {}
+
+    ngOnInit() {
+        this.loadDepartments();
+    }
+
+    loadDepartments() {
+        this.loading = true;
+        this.departmentService.getAllDepartments().subscribe({
+            next: (response) => {
+                this.departments = response.data || [];
+                this.loading = false;
+            },
+            error: (error) => {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Error',
+                    detail: error.error?.message || 'Failed to load departments'
+                });
+                this.loading = false;
+            }
+        });
+    }
 
     showDialogToAdd() {
         this.newDepartment = true;
@@ -72,51 +77,96 @@ export class DepartmentComponent {
     }
 
     save() {
-        if (this.newDepartment) {
-            // Add new department
-            this.department.id = this.getNewId();
-            this.departments.push(this.department);
+        if (!this.department.name || !this.department.description) {
             this.messageService.add({
-                severity: 'success',
-                summary: 'Success',
-                detail: 'Department added successfully'
+                severity: 'error',
+                summary: 'Error',
+                detail: 'Name and description are required'
             });
-        } else {
-            // Update existing department
-            this.departments[this.findSelectedDeptIndex()] = this.department;
-            this.messageService.add({
-                severity: 'success',
-                summary: 'Success',
-                detail: 'Department updated successfully'
-            });
+            return;
         }
 
-        this.department = null;
-        this.displayDialog = false;
+        if (this.newDepartment) {
+            this.createDepartment();
+        } else {
+            this.updateDepartment();
+        }
+    }
+
+    createDepartment() {
+        this.departmentService.createDepartment({
+            name: this.department.name,
+            description: this.department.description
+        }).subscribe({
+            next: (response) => {
+                this.messageService.add({
+                    severity: 'success',
+                    summary: 'Success',
+                    detail: response.message || 'Department created successfully'
+                });
+                this.loadDepartments();
+                this.displayDialog = false;
+            },
+            error: (error) => {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Error',
+                    detail: error.error?.message || 'Failed to create department'
+                });
+            }
+        });
+    }
+
+    updateDepartment() {
+        this.departmentService.updateDepartment(this.department.id, {
+            name: this.department.name,
+            description: this.department.description
+        }).subscribe({
+            next: (response) => {
+                this.messageService.add({
+                    severity: 'success',
+                    summary: 'Success',
+                    detail: response.message || 'Department updated successfully'
+                });
+                this.loadDepartments();
+                this.displayDialog = false;
+            },
+            error: (error) => {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Error',
+                    detail: error.error?.message || 'Failed to update department'
+                });
+            }
+        });
     }
 
     delete() {
-        this.departments.splice(this.findSelectedDeptIndex(), 1);
-        this.messageService.add({
-            severity: 'success',
-            summary: 'Success',
-            detail: 'Department deleted successfully'
+        if (!this.department.id) return;
+
+        this.departmentService.deleteDepartment(this.department.id).subscribe({
+            next: (response) => {
+                this.messageService.add({
+                    severity: 'success',
+                    summary: 'Success',
+                    detail: response.message || 'Department deleted successfully'
+                });
+                this.loadDepartments();
+                this.displayDialog = false;
+            },
+            error: (error) => {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Error',
+                    detail: error.error?.message || 'Failed to delete department'
+                });
+            }
         });
-        this.department = null;
-        this.displayDialog = false;
     }
 
     onRowSelect(event: any) {
         this.newDepartment = false;
         this.department = {...event.data};
         this.displayDialog = true;
-    }
-
-    private findSelectedDeptIndex(): number {
-        return this.departments.findIndex(dept => dept.id === this.selectedDepartment.id);
-    }
-
-    private getNewId(): number {
-        return Math.max(...this.departments.map(dept => dept.id)) + 1;
     }
 }
