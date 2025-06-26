@@ -1,19 +1,27 @@
 <div class="container mx-auto p-4">
     <p-card header="Create New Survey" class="shadow-lg">
         <form [formGroup]="surveyForm" (ngSubmit)="onSubmit()" class="space-y-6">
+            <!-- Loading Indicator -->
+            <div *ngIf="isDataLoading" class="flex justify-center items-center p-8">
+                <p-progressSpinner></p-progressSpinner>
+            </div>
+
             <!-- Basic Information Section -->
-            <div class="space-y-4">
+            <div class="space-y-4" *ngIf="!isDataLoading">
                 <h4 class="text-xl font-semibold border-b pb-2">Basic Information</h4>
 
                 <div class="grid grid-cols-1 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Survey Title*</label>
                         <input pInputText type="text" formControlName="title" class="w-full" placeholder="Enter survey title">
+                        <small *ngIf="surveyForm.get('title')?.invalid && surveyForm.get('title')?.touched"
+                               class="p-error">Title is required</small>
                     </div>
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                        <textarea pInputTextarea formControlName="description" rows="3" class="w-full" placeholder="Survey description"></textarea>
+                        <textarea pInputTextarea formControlName="description" rows="3" class="w-full"
+                                  placeholder="Survey description"></textarea>
                     </div>
                 </div>
 
@@ -22,33 +30,37 @@
                         <label class="block text-sm font-medium text-gray-700 mb-1">Department*</label>
                         <p-dropdown [options]="departments" formControlName="department" optionLabel="name" optionValue="id"
                                     placeholder="Select Department" [showClear]="true" class="w-full"></p-dropdown>
+                        <small *ngIf="surveyForm.get('department')?.invalid && surveyForm.get('department')?.touched"
+                               class="p-error">Department is required</small>
                     </div>
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Survey Type*</label>
-                        <p-dropdown [options]="surveyTypes" formControlName="surveyType" optionLabel="name" optionValue="id"
+                        <p-dropdown [options]="surveyTypes" formControlName="survey_type" optionLabel="name" optionValue="id"
                                     placeholder="Select Survey Type" [showClear]="true" class="w-full"></p-dropdown>
+                        <small *ngIf="surveyForm.get('survey_type')?.invalid && surveyForm.get('survey_type')?.touched"
+                               class="p-error">Survey type is required</small>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div class="flex items-center">
-                        <p-inputSwitch formControlName="isLocationBased" class="mr-2"></p-inputSwitch>
+                        <p-inputSwitch formControlName="is_location_based" class="mr-2"></p-inputSwitch>
                         <label class="text-sm font-medium text-gray-700">Location Based</label>
                     </div>
                     <div class="flex items-center">
-                        <p-inputSwitch formControlName="isImageRequired" class="mr-2"></p-inputSwitch>
+                        <p-inputSwitch formControlName="is_image_required" class="mr-2"></p-inputSwitch>
                         <label class="text-sm font-medium text-gray-700">Image Required</label>
                     </div>
                     <div class="flex items-center">
-                        <p-inputSwitch formControlName="isActive" class="mr-2" [ngModel]="true"></p-inputSwitch>
+                        <p-inputSwitch formControlName="is_active" class="mr-2" [ngModel]="true"></p-inputSwitch>
                         <label class="text-sm font-medium text-gray-700">Active Survey</label>
                     </div>
                 </div>
             </div>
 
             <!-- Questions Section -->
-            <div class="space-y-4">
+            <div class="space-y-4" *ngIf="!isDataLoading">
                 <div class="flex justify-between items-center border-b pb-2">
                     <h4 class="text-xl font-semibold">Questions</h4>
                     <p-button icon="pi pi-plus" label="Add Question" (onClick)="addQuestion()"
@@ -67,6 +79,8 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Question Text*</label>
                             <input pInputText type="text" formControlName="text" class="w-full" placeholder="Enter question text">
+                            <small *ngIf="question.get('text')?.invalid && question.get('text')?.touched"
+                                   class="p-error">Question text is required</small>
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -74,6 +88,8 @@
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Question Type*</label>
                                 <p-dropdown [options]="questionTypes" formControlName="type" optionLabel="label" optionValue="value"
                                             (onChange)="onQuestionTypeChange(i)" placeholder="Select Type" class="w-full"></p-dropdown>
+                                <small *ngIf="question.get('type')?.invalid && question.get('type')?.touched"
+                                       class="p-error">Question type is required</small>
                             </div>
 
                             <div class="flex items-center" *ngIf="question.get('type')?.value !== 'image'">
@@ -111,6 +127,8 @@
                                         <p-button icon="pi pi-trash" (onClick)="removeChoice(i, j)"
                                                   styleClass="p-button-danger p-button-text p-button-sm"></p-button>
                                     </div>
+                                    <small *ngIf="choice.get('text')?.invalid && choice.get('text')?.touched"
+                                           class="p-error">Option text is required</small>
                                 </div>
                             </div>
                             <p-button icon="pi pi-plus" label="Add Option" (onClick)="addChoice(i)"
@@ -145,7 +163,7 @@
             </div>
 
             <!-- Targets Section -->
-            <div class="space-y-4">
+            <div class="space-y-4" *ngIf="!isDataLoading">
                 <div class="flex justify-between items-center border-b pb-2">
                     <h4 class="text-xl font-semibold">Survey Targets</h4>
                     <p-button icon="pi pi-plus" label="Add Target" (onClick)="addTarget()"
@@ -166,6 +184,8 @@
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Target Type*</label>
                                 <p-dropdown [options]="targetTypes" formControlName="targetType" optionLabel="label" optionValue="value"
                                             (onChange)="onTargetTypeChange(i)" placeholder="Select Type" class="w-full"></p-dropdown>
+                                <small *ngIf="target.get('targetType')?.invalid && target.get('targetType')?.touched"
+                                       class="p-error">Target type is required</small>
                             </div>
 
                             <!-- Dynamic fields based on target type -->
@@ -173,22 +193,30 @@
                                 <div *ngIf="target.get('targetType')?.value === 'role'">
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Role Name*</label>
                                     <input pInputText type="text" formControlName="roleName" class="w-full" placeholder="e.g., Manager">
+                                    <small *ngIf="target.get('roleName')?.invalid && target.get('roleName')?.touched"
+                                           class="p-error">Role name is required</small>
                                 </div>
 
                                 <div *ngIf="target.get('targetType')?.value === 'department'">
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Department*</label>
                                     <p-dropdown [options]="departments" formControlName="department" optionLabel="name" optionValue="id"
                                                 placeholder="Select Department" class="w-full"></p-dropdown>
+                                    <small *ngIf="target.get('department')?.invalid && target.get('department')?.touched"
+                                           class="p-error">Department is required</small>
                                 </div>
 
                                 <div *ngIf="target.get('targetType')?.value === 'user'">
                                     <label class="block text-sm font-medium text-gray-700 mb-1">User ID*</label>
                                     <p-inputNumber formControlName="user_id" class="w-full" placeholder="Enter user ID"></p-inputNumber>
+                                    <small *ngIf="target.get('user_id')?.invalid && target.get('user_id')?.touched"
+                                           class="p-error">User ID is required</small>
                                 </div>
 
                                 <div *ngIf="target.get('targetType')?.value === 'site'">
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Site ID*</label>
                                     <p-inputNumber formControlName="site_id" class="w-full" placeholder="Enter site ID"></p-inputNumber>
+                                    <small *ngIf="target.get('site_id')?.invalid && target.get('site_id')?.touched"
+                                           class="p-error">Site ID is required</small>
                                 </div>
 
                                 <div *ngIf="target.get('targetType')?.value === 'all'" class="text-gray-500 italic">
@@ -201,9 +229,15 @@
             </div>
 
             <!-- Form Actions -->
-            <div class="flex justify-end gap-2 pt-4 border-t">
-                <p-button label="Cancel" (onClick)="onCancel()" styleClass="p-button-secondary"></p-button>
-                <p-button label="Create Survey" type="submit" [disabled]="surveyForm.invalid" icon="pi pi-check"></p-button>
+            <div class="flex justify-end gap-2 pt-4 border-t" *ngIf="!isDataLoading">
+                <p-button label="Cancel" (onClick)="onCancel()" styleClass="p-button-secondary"
+                          [disabled]="isLoading"></p-button>
+                <p-button label="Create Survey" type="submit" [disabled]="surveyForm.invalid || isLoading"
+                          icon="pi pi-check" [loading]="isLoading">
+                    <ng-template pTemplate="loading">
+                        <i class="pi pi-spin pi-spinner" style="font-size: 1rem"></i>
+                    </ng-template>
+                </p-button>
             </div>
         </form>
     </p-card>
