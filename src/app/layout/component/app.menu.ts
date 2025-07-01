@@ -68,6 +68,11 @@ export class AppMenu {
                         routerLink: ['/survey']
                     },
                     {
+                        label: 'Survey-List',
+                        icon: 'pi pi-fw pi-list',
+                        routerLink: ['/survey-list']
+                    },
+                    {
                         label: 'Survey-Target',
                         icon: 'pi pi-fw pi-window-maximize',
                         routerLink: ['/survey-target']

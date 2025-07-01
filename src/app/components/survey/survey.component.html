@@ -41,6 +41,17 @@
                         <small *ngIf="surveyForm.get('survey_type')?.invalid && surveyForm.get('survey_type')?.touched"
                                class="p-error">Survey type is required</small>
                     </div>
+
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Site*</label>
+                            <p-dropdown [options]="sites" formControlName="site_id" optionLabel="site_code" optionValue="id"
+                                        placeholder="Select Site" [showClear]="true" class="w-full"></p-dropdown>
+                            <small *ngIf="surveyForm.get('site_id')?.invalid && surveyForm.get('site_id')?.touched"
+                                   class="p-error">Site is required</small>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -242,3 +253,7 @@
         </form>
     </p-card>
 </div>
+
+
+
+

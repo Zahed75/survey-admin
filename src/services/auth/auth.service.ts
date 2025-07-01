@@ -8,7 +8,7 @@ import { environmentCentral } from '../../enviornments/enviornment';
     providedIn: 'root'
 })
 export class AuthService {
-    private baseURL = `${environmentCentral.apiBaseUrl}/users/api`;
+    private baseURL = `${environmentCentral.apiBaseUrl}`;
     private tokenKey = 'access_token';
     private userKey = 'current_user';
     redirectUrl: string | null = null;
@@ -27,7 +27,7 @@ export class AuthService {
         staff_id: number;
         designation: string;
     }): Observable<any> {
-        return this.http.post(`${this.baseURL}/register/`, userData);
+        return this.http.post(`${this.baseURL}api/user/register`, userData);
     }
 
     // Verify OTP
@@ -35,7 +35,7 @@ export class AuthService {
         phone_number: string;
         otp: number;
     }): Observable<any> {
-        return this.http.post(`${this.baseURL}/verify-otp/`, otpData).pipe(
+        return this.http.post(`${this.baseURL}/verify-otp`, otpData).pipe(
             tap((response: any) => {
                 if (response.user) {
                     this.setUser(response.user);
@@ -49,7 +49,7 @@ export class AuthService {
         phone_number: string;
         password: string;
     }): Observable<any> {
-        return this.http.post(`${this.baseURL}/login/`, credentials).pipe(
+        return this.http.post(`${this.baseURL}/api/user/login`, credentials).pipe(
             tap((response: any) => {
                 this.setToken(response.access_token);
                 this.setUser(response.user);
@@ -68,6 +68,8 @@ export class AuthService {
         return !!this.getToken();
     }
 
+
+
     // Get current user
     getCurrentUser(): any {
         const user = localStorage.getItem(this.userKey);
@@ -85,15 +87,22 @@ export class AuthService {
         return this.getRole() === 'staff';
     }
 
-    // Get auth token
+
+
+
+
     getToken(): string | null {
-        return localStorage.getItem(this.tokenKey);
+        const token = localStorage.getItem(this.tokenKey); // Changed TOKEN_KEY to tokenKey
+        console.log('Retrieved token:', token);
+        return token;
     }
 
-    // Private helper methods
-    private setToken(token: string): void {
-        localStorage.setItem(this.tokenKey, token);
+    setToken(token: string): void {
+        console.log('Setting token:', token);
+        localStorage.setItem(this.tokenKey, token); // Changed TOKEN_KEY to tokenKey
     }
+
+
 
     private setUser(user: any): void {
         localStorage.setItem(this.userKey, JSON.stringify(user));

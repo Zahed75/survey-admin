@@ -68,6 +68,7 @@ export class SurveyComponent implements OnInit {
 
     departments: any[] = [];
     surveyTypes: any[] = [];
+    sites: any[] = [];
 
     questionTypes = [
         { label: 'Text Answer', value: 'text' },
@@ -106,6 +107,7 @@ export class SurveyComponent implements OnInit {
             description: [''],
             department: [null, Validators.required],
             survey_type: [null, Validators.required],
+            site_id: [null, Validators.required],
             is_location_based: [false],
             is_image_required: [false],
             is_active: [true],
@@ -114,25 +116,32 @@ export class SurveyComponent implements OnInit {
         });
     }
 
+
     private loadInitialData(): void {
         this.isDataLoading = true;
 
-        // Load survey types
         this.surveyService.getAllSurveyTypes().subscribe({
             next: (response: any) => {
                 this.surveyTypes = response.data || [];
-                this.loadDepartments();
-            },
-            error: (error: any) => {
-                this.isDataLoading = false;
-                this.messageService.add({
-                    severity: 'error',
-                    summary: 'Error',
-                    detail: 'Failed to load survey types'
+
+                this.surveyService.getAllSites().subscribe({
+                    next: (siteRes: any) => {
+                        this.sites = siteRes.data || [];
+                        this.loadDepartments();
+                    },
+                    error: () => {
+                        this.isDataLoading = false;
+                        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to load sites' });
+                    }
                 });
+            },
+            error: () => {
+                this.isDataLoading = false;
+                this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to load survey types' });
             }
         });
     }
+
 
     private loadDepartments(): void {
         this.departmentService.getAllDepartments().subscribe({
@@ -269,7 +278,7 @@ export class SurveyComponent implements OnInit {
                     summary: 'Success',
                     detail: 'Survey created successfully!'
                 });
-                this.router.navigate(['/surveys']);
+                this.router.navigate(['/survey']);
             },
             error: (error: any) => {
                 console.error('Error creating survey:', error);
@@ -326,6 +335,7 @@ export class SurveyComponent implements OnInit {
             description: formValue.description,
             department: formValue.department,
             survey_type: formValue.survey_type,
+            site_id: formValue.site_id,
             is_location_based: formValue.is_location_based,
             is_image_required: formValue.is_image_required,
             is_active: formValue.is_active,
@@ -333,6 +343,9 @@ export class SurveyComponent implements OnInit {
             targets: targets
         };
     }
+
+
+
 
     private markAllAsTouched(): void {
         Object.values(this.surveyForm.controls).forEach(control => {

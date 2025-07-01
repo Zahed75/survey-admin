@@ -7,11 +7,11 @@ import { Observable } from 'rxjs';
     providedIn: 'root'
 })
 export class RoleService {
-    private apiUrl = `${environmentCentral.apiBaseUrl}/users/api/roles`;
+    private apiUrl = `${environmentCentral.apiBaseUrl}/api/roles`;
 
     constructor(private http: HttpClient) {} // Removed MessageService dependency
 
     getAllRoles(): Observable<any> {
-        return this.http.get(`${this.apiUrl}/`);
+        return this.http.get(`${this.apiUrl}`);
     }
 }
