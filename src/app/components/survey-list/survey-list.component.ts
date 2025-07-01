@@ -12,103 +12,115 @@ import { InputText } from 'primeng/inputtext';
 import { FormsModule } from '@angular/forms';
 import { Textarea } from 'primeng/textarea';
 import { Checkbox } from 'primeng/checkbox';
+import { InputNumber } from 'primeng/inputnumber';
+import { DropdownModule } from 'primeng/dropdown';
 
 @Component({
     selector: 'app-survey-list',
     templateUrl: './survey-list.component.html',
     styleUrls: ['./survey-list.component.scss'],
-    imports: [TableModule, ButtonDirective, RouterLink, Tag, ConfirmDialog, Card, NgIf, NgForOf, InputText, FormsModule, Textarea, Checkbox, DatePipe],
+    imports: [TableModule, ButtonDirective, RouterLink, Tag, ConfirmDialog, Card, NgIf, NgForOf, InputText, FormsModule, Textarea, Checkbox, DatePipe, InputNumber, DropdownModule],
     providers: [ConfirmationService, MessageService]
 })
 export class SurveyListComponent implements OnInit {
     surveys: any[] = [];
     loading = false;
     expandedSurvey: any = null;
-    editMode: boolean = false;
+    editMode = false;
 
     constructor(
         private surveyService: SurveyService,
-        private confirmationService: ConfirmationService,
-        private messageService: MessageService
+        private confirmationService: ConfirmationService
     ) {}
 
-    ngOnInit(): void {
+    ngOnInit() {
         this.loadSurveys();
     }
 
-    loadSurveys(): void {
+    loadSurveys() {
         this.loading = true;
         this.surveyService.getAllSurveys().subscribe({
             next: (res) => {
-                this.surveys = res.data || [];
+                this.surveys = res.data;
                 this.loading = false;
-            },
-            error: () => {
-                this.loading = false;
-                this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to load surveys' });
             }
         });
     }
 
-    toggleDetails(survey: any): void {
-        if (this.expandedSurvey?.id === survey.id && !this.editMode) {
-            this.expandedSurvey = null;
-        } else {
-            this.editMode = false;
-            this.expandedSurvey = { ...survey };
-        }
+    toggleDetails(survey: any) {
+        this.editMode = false;
+        this.surveyService.getSurveyById(survey.id).subscribe({
+            next: (res) => (this.expandedSurvey = res.data)
+        });
     }
 
-    toggleEdit(survey: any): void {
-        if (this.expandedSurvey?.id === survey.id && this.editMode) {
-            this.cancelEdit();
-        } else {
-            this.editMode = true;
-            this.expandedSurvey = { ...survey };
-        }
+    toggleEdit(survey: any) {
+        this.editMode = true;
+        this.surveyService.getSurveyById(survey.id).subscribe({
+            next: (res) => (this.expandedSurvey = JSON.parse(JSON.stringify(res.data))) // deep clone
+        });
     }
 
-    cancelEdit(): void {
+    addQuestion() {
+        this.expandedSurvey.questions.push({
+            text: '',
+            type: '',
+            has_marks: false,
+            marks: null,
+            is_required: false,
+            choices: []
+        });
+    }
+
+    removeQuestion(index: number) {
+        this.expandedSurvey.questions.splice(index, 1);
+    }
+
+    addChoice(qIndex: number) {
+        this.expandedSurvey.questions[qIndex].choices.push({
+            text: '',
+            is_correct: false
+        });
+    }
+
+    removeChoice(qIndex: number, cIndex: number) {
+        this.expandedSurvey.questions[qIndex].choices.splice(cIndex, 1);
+    }
+
+    addTarget() {
+        this.expandedSurvey.targets.push({
+            target_type: '',
+            role_name: '',
+            department: null,
+            site_id: null,
+            user_id: null
+        });
+    }
+
+    removeTarget(index: number) {
+        this.expandedSurvey.targets.splice(index, 1);
+    }
+
+    cancelEdit() {
         this.editMode = false;
         this.expandedSurvey = null;
     }
 
-    saveSurvey(updatedSurvey: any): void {
-        const payload = {
-            ...updatedSurvey,
-            questions: updatedSurvey.questions,
-            targets: updatedSurvey.targets
-        };
-        this.surveyService.updateSurvey(updatedSurvey.id, payload).subscribe({
-            next: (res) => {
-                this.messageService.add({ severity: 'success', summary: 'Updated', detail: 'Survey updated successfully' });
+    saveSurvey() {
+        this.surveyService.updateSurvey(this.expandedSurvey.id, this.expandedSurvey).subscribe({
+            next: () => {
                 this.editMode = false;
                 this.expandedSurvey = null;
                 this.loadSurveys();
-            },
-            error: () => {
-                this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to update survey' });
             }
         });
     }
 
-    confirmDelete(id: number): void {
+    confirmDelete(id: number) {
         this.confirmationService.confirm({
             message: 'Are you sure you want to delete this survey?',
             accept: () => {
-                this.deleteSurvey(id);
-            }
-        });
-    }
-
-    deleteSurvey(id: number): void {
-        this.surveyService.deleteSurvey(id).subscribe({
-            next: () => {
-                this.messageService.add({ severity: 'success', summary: 'Deleted', detail: 'Survey deleted successfully' });
-                this.loadSurveys();
-            },
-            error: () => {
-                this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to delete survey' });
+                this.surveyService.deleteSurvey(id).subscribe(() => this.loadSurveys());
             }
         });
     }
