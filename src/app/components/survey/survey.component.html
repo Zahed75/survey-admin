@@ -43,14 +43,12 @@
                     </div>
 
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Site*</label>
-                            <p-dropdown [options]="sites" formControlName="site_id" optionLabel="site_code" optionValue="id"
-                                        placeholder="Select Site" [showClear]="true" class="w-full"></p-dropdown>
-                            <small *ngIf="surveyForm.get('site_id')?.invalid && surveyForm.get('site_id')?.touched"
-                                   class="p-error">Site is required</small>
-                        </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Sites*</label>
+                        <p-multiSelect [options]="sites" formControlName="site_ids" optionLabel="site_code" optionValue="id"
+                                       placeholder="Select Sites" [showClear]="true" class="w-full"></p-multiSelect>
+                        <small *ngIf="surveyForm.get('site_ids')?.invalid && surveyForm.get('site_ids')?.touched"
+                               class="p-error">At least one site is required</small>
                     </div>
                 </div>
 

@@ -1,9 +1,3 @@
-// export const environment = {
-//     production: true,
-//     apiBaseUrl: 'https://app.bestelectronics.com.bd/api/v1'
-// };
-//
-//
 
 
 // Development environment configuration
@@ -17,5 +11,19 @@ export const environmentCentral = {
 
 export const surveyEnviornment = {
     production: false,
-    apiBaseUrl: ' http://127.0.0.1:8000',
+    apiBaseUrl: ' https://survey-backend.shwapno.app',
 }
+
+
+
+// export const surveyEnviornment = {
+//     production: false,
+//     apiBaseUrl: ' http://127.0.0.1:8000',
+// }
+
+
+
+
+
+
+

@@ -9,23 +9,15 @@ import { InputTextModule } from 'primeng/inputtext';
 import { ToastModule } from 'primeng/toast';
 import { ToolbarModule } from 'primeng/toolbar';
 import { DialogModule } from 'primeng/dialog';
-import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { ConfirmDialog, ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ConfirmationService } from 'primeng/api';
+
 
 @Component({
     selector: 'app-survey-type',
     standalone: true,
-    imports: [
-        CommonModule,
-        FormsModule,
-        TableModule,
-        ButtonModule,
-        InputTextModule,
-        ToastModule,
-        ToolbarModule,
-        DialogModule,
-        ConfirmDialogModule
-    ],
+    imports: [CommonModule, FormsModule, TableModule, ButtonModule, InputTextModule, ToastModule,
+        ToolbarModule, DialogModule,ConfirmDialog],
     templateUrl: './survey-type.component.html',
     styleUrls: ['./survey-type.component.scss'],
     providers: [MessageService, ConfirmationService]
@@ -87,45 +79,43 @@ export class SurveyTypeComponent implements OnInit {
 
     saveSurveyType(): void {
         if (this.isEditMode) {
-            this.surveyService.updateSurveyType(this.currentSurveyType.id, this.currentSurveyType)
-                .subscribe({
-                    next: () => {
-                        this.messageService.add({
-                            severity: 'success',
-                            summary: 'Success',
-                            detail: 'Survey type updated successfully'
-                        });
-                        this.loadSurveyTypes();
-                        this.displayDialog = false;
-                    },
-                    error: () => {
-                        this.messageService.add({
-                            severity: 'error',
-                            summary: 'Error',
-                            detail: 'Failed to update survey type'
-                        });
-                    }
-                });
+            this.surveyService.updateSurveyType(this.currentSurveyType.id, this.currentSurveyType).subscribe({
+                next: () => {
+                    this.messageService.add({
+                        severity: 'success',
+                        summary: 'Success',
+                        detail: 'Survey type updated successfully'
+                    });
+                    this.loadSurveyTypes();
+                    this.displayDialog = false;
+                },
+                error: () => {
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: 'Failed to update survey type'
+                    });
+                }
+            });
         } else {
-            this.surveyService.createSurveyType(this.currentSurveyType)
-                .subscribe({
-                    next: () => {
-                        this.messageService.add({
-                            severity: 'success',
-                            summary: 'Success',
-                            detail: 'Survey type created successfully'
-                        });
-                        this.loadSurveyTypes();
-                        this.displayDialog = false;
-                    },
-                    error: () => {
-                        this.messageService.add({
-                            severity: 'error',
-                            summary: 'Error',
-                            detail: 'Failed to create survey type'
-                        });
-                    }
-                });
+            this.surveyService.createSurveyType(this.currentSurveyType).subscribe({
+                next: () => {
+                    this.messageService.add({
+                        severity: 'success',
+                        summary: 'Success',
+                        detail: 'Survey type created successfully'
+                    });
+                    this.loadSurveyTypes();
+                    this.displayDialog = false;
+                },
+                error: () => {
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: 'Failed to create survey type'
+                    });
+                }
+            });
         }
     }
 

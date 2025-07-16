@@ -100,9 +100,8 @@ export class SurveyService {
     }
 
     getAllSites(): Observable<any> {
-        return this.http.get(`https://api.shwapno.app/api/sites`, {
-            headers: this.getAuthHeaders()
-        });
+        return this.http.get(`https://api.shwapno.app/api/sites`);
     }
+
 
 }
