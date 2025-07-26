@@ -15,6 +15,7 @@ import { authGuard } from '../src/guard/auth.guard';
 import { VerifyOtpComponent } from './app/components/verify-otp/verify-otp.component';
 import { SurveyTypeComponent } from './app/components/survey-type/survey-type.component';
 import { SurveyListComponent } from './app/components/survey-list/survey-list.component';
+import { SurveyEditComponent } from './app/components/survey-edit/survey-edit.component';
 
 export const appRoutes: Routes = [
     // Public routes (no auth required)
@@ -35,6 +36,8 @@ export const appRoutes: Routes = [
             { path: 'department', component: DepartmentComponent },
             { path: 'survey-target', component: SurveyTargetComponent },
             { path: 'survey-type', component: SurveyTypeComponent },
+            { path: 'survey-edit/:id', component: SurveyEditComponent },
+
             {path:'survey-list',component: SurveyListComponent },
             {
                 path: 'pages',
