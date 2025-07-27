@@ -1,58 +1,191 @@
-<div class="container mx-auto p-4">
-    <p-card>
-        <ng-template pTemplate="header">
-            <div class="flex justify-between items-center">
-                <h2>Edit Survey</h2>
-                <button pButton label="Back" icon="pi pi-arrow-left" (click)="cancel()" class="p-button-sm p-button-secondary"></button>
+<div class="container mx-auto p-6">
+    <p-card header="Edit Survey" class="shadow-md rounded-xl">
+        <form [formGroup]="surveyForm" (ngSubmit)="onSubmit()" class="space-y-8">
+
+            <!-- Loading Spinner -->
+            <div *ngIf="isDataLoading" class="flex justify-center items-center py-12">
+                <p-progressSpinner></p-progressSpinner>
             </div>
-        </ng-template>
 
-        <form [formGroup]="form" (ngSubmit)="submit()" class="p-4">
-            <input formControlName="title" placeholder="Survey Title" class="mb-4 w-full p-inputtext" />
-
-            <div formArrayName="questions">
-                <div *ngFor="let q of questions.controls; let i = index" [formGroupName]="i" class="mb-4 border p-3">
-                    <input formControlName="text" placeholder="Question Text" class="mb-2 p-inputtext w-full" />
-                    <div formArrayName="choices" class="ml-4">
-                        <div *ngFor="let choice of getChoices(q).controls; let j = index" [formGroupName]="j" class="flex items-center mb-2">
-                            <input formControlName="text" placeholder="Choice Text" class="p-inputtext w-full" />
-                            <button type="button" (click)="removeChoice(i, j)" class="ml-2 p-button p-button-danger p-button-sm">Remove</button>
+            <div *ngIf="!isDataLoading">
+                <!-- Basic Info -->
+                <section class="space-y-4">
+                    <h2 class="text-2xl font-semibold text-gray-800 border-b pb-2">Basic Information</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Survey Title*</label>
+                            <input pInputText formControlName="title" class="w-full mt-1">
                         </div>
-                        <button type="button" (click)="addChoice(i)" class="p-button p-button-sm p-button-secondary">Add Choice</button>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Description</label>
+                            <textarea pInputTextarea formControlName="description" class="w-full mt-1"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Department*</label>
+                            <p-dropdown [options]="departments" formControlName="department" optionLabel="name" optionValue="id" placeholder="Select Department" class="w-full mt-1"></p-dropdown>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Survey Type*</label>
+                            <p-dropdown [options]="surveyTypes" formControlName="survey_type" optionLabel="name" optionValue="id" placeholder="Select Survey Type" class="w-full mt-1"></p-dropdown>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700">Sites*</label>
+                            <p-multiSelect [options]="sites" formControlName="site_ids" optionLabel="site_code" optionValue="id" placeholder="Select Sites" class="w-full mt-1"></p-multiSelect>
+                        </div>
                     </div>
-                    <button type="button" (click)="removeQuestion(i)" class="mt-2 p-button p-button-danger p-button-sm">Remove Question</button>
+
+                    <div class="flex gap-6 items-center pt-4">
+                        <div class="flex items-center">
+                            <p-inputSwitch formControlName="is_location_based" class="mr-2"></p-inputSwitch>
+                            <label class="text-sm text-gray-700">Location Based</label>
+                        </div>
+                        <div class="flex items-center">
+                            <p-inputSwitch formControlName="is_image_required" class="mr-2"></p-inputSwitch>
+                            <label class="text-sm text-gray-700">Image Required</label>
+                        </div>
+                        <div class="flex items-center">
+                            <p-inputSwitch formControlName="is_active" class="mr-2"></p-inputSwitch>
+                            <label class="text-sm text-gray-700">Active Survey</label>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Question Categories -->
+                <section class="space-y-4 pt-8">
+                    <div class="flex justify-between items-center border-b pb-2">
+                        <h2 class="text-2xl font-semibold text-gray-800">Question Categories</h2>
+                        <p-button label="Add Category" icon="pi pi-plus" (onClick)="addCategory()" styleClass="p-button-success p-button-sm"></p-button>
+                    </div>
+
+                    <div formArrayName="categories" class="space-y-6">
+                        <div *ngFor="let category of categories.controls; let catIdx = index" [formGroupName]="catIdx" class="border rounded-lg shadow-sm p-4 bg-white">
+                            <div class="flex justify-between items-center mb-4">
+                                <input pInputText formControlName="name" class="text-lg font-semibold w-2/3" placeholder="Enter category name">
+                                <p-button icon="pi pi-trash" (onClick)="removeCategory(catIdx)" styleClass="p-button-danger p-button-sm p-button-outlined"></p-button>
+                            </div>
+
+                            <div formArrayName="questions" class="space-y-4">
+                                <div *ngFor="let question of getQuestions(catIdx).controls; let qIdx = index" [formGroupName]="qIdx" class="p-4 border rounded-md bg-gray-50">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <h3 class="text-lg font-medium">Question #{{ qIdx + 1 }}</h3>
+                                        <p-button icon="pi pi-trash" (onClick)="removeQuestion(catIdx, qIdx)" styleClass="p-button-danger p-button-sm p-button-text"></p-button>
+                                    </div>
+
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="block text-sm font-medium">Text*</label>
+                                            <input pInputText formControlName="text" class="w-full">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium">Type*</label>
+                                            <p-dropdown [options]="questionTypes" formControlName="type" optionLabel="label" optionValue="value" (onChange)="onQuestionTypeChange(catIdx, qIdx)" class="w-full"></p-dropdown>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex flex-wrap gap-6 items-center mt-4">
+                                        <div class="flex items-center">
+                                            <p-checkbox formControlName="isRequired" [binary]="true"></p-checkbox>
+                                            <label class="ml-2">Required</label>
+                                        </div>
+                                        <div class="flex items-center" *ngIf="question.get('type')?.value !== 'image' && question.get('type')?.value !== 'location'">
+                                            <p-inputSwitch formControlName="hasMarks" class="mr-2"></p-inputSwitch>
+                                            <label>Has Marks</label>
+                                        </div>
+                                        <div *ngIf="question.get('hasMarks')?.value">
+                                            <label class="block text-sm font-medium">Marks</label>
+                                            <p-inputNumber formControlName="marks" class="w-24"></p-inputNumber>
+                                        </div>
+                                    </div>
+
+                                    <!-- Multiple Choice -->
+                                    <div *ngIf="question.get('type')?.value === 'choice'" class="mt-4">
+                                        <label class="font-medium">Choices</label>
+                                        <div formArrayName="choices" class="space-y-2 mt-2">
+                                            <div *ngFor="let choice of getQuestionChoices(catIdx, qIdx).controls; let cIdx = index" [formGroupName]="cIdx" class="flex items-center gap-3">
+                                                <input pInputText formControlName="text" class="flex-1" placeholder="Option text">
+                                                <p-checkbox formControlName="isCorrect" [binary]="true"></p-checkbox>
+                                                <p-button icon="pi pi-trash" (onClick)="removeChoice(catIdx, qIdx, cIdx)" styleClass="p-button-danger p-button-sm p-button-text"></p-button>
+                                            </div>
+                                        </div>
+                                        <p-button label="Add Option" icon="pi pi-plus" (onClick)="addChoice(catIdx, qIdx)" styleClass="p-button-sm p-button-outlined mt-2"></p-button>
+                                    </div>
+
+                                    <!-- Yes/No -->
+                                    <div *ngIf="question.get('type')?.value === 'yesno'" class="grid grid-cols-2 gap-4 mt-4">
+                                        <div class="flex justify-between items-center border p-2">
+                                            <span>Yes</span>
+                                            <p-checkbox [formControl]="getYesNoControl(catIdx, qIdx, 'yes')" [binary]="true"></p-checkbox>
+                                        </div>
+                                        <div class="flex justify-between items-center border p-2">
+                                            <span>No</span>
+                                            <p-checkbox [formControl]="getYesNoControl(catIdx, qIdx, 'no')" [binary]="true"></p-checkbox>
+                                        </div>
+                                    </div>
+
+                                    <!-- Info Text for Text/Image/Location -->
+                                    <div *ngIf="['text', 'image', 'location'].includes(question.get('type')?.value)" class="text-sm text-gray-500 mt-3">
+                                        Users will provide {{ question.get('type')?.value }} response.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Add Question Button Below Each Category -->
+                            <div class="flex justify-end mt-4">
+                                <p-button icon="pi pi-plus" label="Add Question" (onClick)="addQuestion(catIdx)" styleClass="p-button-sm p-button-outlined"></p-button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Targets Section -->
+                <section class="space-y-4 pt-8">
+                    <div class="flex justify-between items-center border-b pb-2">
+                        <h2 class="text-2xl font-semibold text-gray-800">Target Audience</h2>
+                        <p-button label="Add Target" icon="pi pi-plus" (onClick)="addTarget()" styleClass="p-button-success p-button-sm"></p-button>
+                    </div>
+
+                    <div formArrayName="targets" class="space-y-4">
+                        <div *ngFor="let target of targets.controls; let i = index" [formGroupName]="i" class="border rounded-md p-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium">Target Type</label>
+                                    <p-dropdown [options]="targetTypes" formControlName="target_type" optionLabel="label" optionValue="value" class="w-full"></p-dropdown>
+                                </div>
+
+                                <div *ngIf="target.get('target_type')?.value === 'role'">
+                                    <label class="block text-sm font-medium">Role Name</label>
+                                    <input pInputText formControlName="role_name" class="w-full">
+                                </div>
+
+                                <div *ngIf="target.get('target_type')?.value === 'department'">
+                                    <label class="block text-sm font-medium">Department</label>
+                                    <p-dropdown [options]="departments" formControlName="department" optionLabel="name" class="w-full"></p-dropdown>
+                                </div>
+
+                                <div *ngIf="target.get('target_type')?.value === 'site'">
+                                    <label class="block text-sm font-medium">Site</label>
+                                    <p-dropdown [options]="sites" formControlName="site_id" optionLabel="site_code" optionValue="id" class="w-full"></p-dropdown>
+                                </div>
+
+                                <div *ngIf="target.get('target_type')?.value === 'user'">
+                                    <label class="block text-sm font-medium">User</label>
+                                    <p-dropdown [options]="users" formControlName="user_id" optionLabel="username" optionValue="id" class="w-full"></p-dropdown>
+                                </div>
+                            </div>
+
+                            <div class="flex justify-end mt-2">
+                                <p-button icon="pi pi-trash" (onClick)="removeTarget(i)" styleClass="p-button-danger p-button-sm p-button-text"></p-button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Submit Buttons -->
+                <div class="flex justify-end gap-3 pt-6 border-t mt-6">
+                    <p-button label="Cancel" (onClick)="onCancel()" styleClass="p-button-secondary"></p-button>
+                    <p-button label="Update Survey" type="submit" [disabled]="surveyForm.invalid || isLoading" icon="pi pi-check" [loading]="isLoading"></p-button>
                 </div>
-                <button type="button" (click)="addQuestion()" class="p-button p-button-sm p-button-primary">Add Question</button>
-            </div>
-
-            <div class="mt-6" formArrayName="targets">
-                <h3>Targets</h3>
-                <div *ngFor="let t of targets.controls; let i = index" [formGroupName]="i" class="mb-4 p-3 border rounded">
-                    <p-dropdown [options]="targetTypes" formControlName="target_type" optionLabel="label"></p-dropdown>
-
-                    <div *ngIf="t.get('target_type')?.value === 'role'">
-                        <p-dropdown [options]="roles" formControlName="role" optionLabel="name"></p-dropdown>
-                    </div>
-                    <div *ngIf="t.get('target_type')?.value === 'department'">
-                        <p-dropdown [options]="departments" formControlName="department" optionLabel="name"></p-dropdown>
-                    </div>
-                    <div *ngIf="t.get('target_type')?.value === 'site'">
-                        <p-dropdown [options]="sites" formControlName="site" optionLabel="name"></p-dropdown>
-                    </div>
-                    <div *ngIf="t.get('target_type')?.value === 'user'">
-                        <p-dropdown [options]="users" formControlName="user" optionLabel="username"></p-dropdown>
-                    </div>
-
-                    <button type="button" (click)="removeTarget(i)" class="mt-2 p-button p-button-sm p-button-danger">Remove Target</button>
-                </div>
-                <button type="button" (click)="addTarget()" class="p-button p-button-sm p-button-primary">Add Target</button>
-            </div>
-
-            <div class="mt-6 flex justify-end gap-2">
-                <button type="button" (click)="cancel()" class="p-button p-button-secondary">Cancel</button>
-                <button type="submit" class="p-button p-button-primary">Save</button>
             </div>
         </form>
-
     </p-card>
 </div>
