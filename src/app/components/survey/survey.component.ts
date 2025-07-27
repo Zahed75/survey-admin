@@ -182,7 +182,7 @@ export class SurveyComponent implements OnInit {
         this.surveyService.createSurvey(payload).subscribe({
             next: () => {
                 this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Survey created successfully!' });
-                this.router.navigate(['/survey']);
+                this.router.navigate(['/survey-list']);
             },
             error: (err) => {
                 this.isLoading = false;
