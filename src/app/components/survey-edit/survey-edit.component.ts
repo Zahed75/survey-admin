@@ -15,6 +15,7 @@ import { NgForOf, NgIf } from '@angular/common';
 import { Checkbox } from 'primeng/checkbox';
 import { InputNumber } from 'primeng/inputnumber';
 import { ProgressSpinner } from 'primeng/progressspinner';
+import { Toast } from 'primeng/toast';
 
 interface QuestionPayload {
     text: string;
@@ -29,21 +30,7 @@ interface QuestionPayload {
 @Component({
     selector: 'app-survey-edit',
     templateUrl: './survey-edit.component.html',
-    imports: [
-        ReactiveFormsModule,
-        DropdownModule,
-        Card,
-        InputText,
-        Textarea,
-        MultiSelect,
-        InputSwitch,
-        Button,
-        NgForOf,
-        Checkbox,
-        InputNumber,
-        NgIf,
-        ProgressSpinner
-    ],
+    imports: [ReactiveFormsModule, DropdownModule, Card, InputText, Textarea, MultiSelect, InputSwitch, Button, NgForOf, Checkbox, InputNumber, NgIf, ProgressSpinner, Toast],
     providers: [MessageService]
 })
 export class SurveyEditComponent implements OnInit {
@@ -148,21 +135,23 @@ export class SurveyEditComponent implements OnInit {
             next: (res) => {
                 const survey = res.data;
 
+                // Split the site_code (comma-separated string) into an array of site codes
+                const selectedSiteCodes = survey.site_code ? survey.site_code.split(',') : [];
+
+                // Now map site_codes into an array of objects for binding with multi-select
+                const selectedSites = this.sites.filter((site) => selectedSiteCodes.includes(site.site_code));
+
                 // Patch basic form values
                 this.surveyForm.patchValue({
                     title: survey.title,
                     description: survey.description,
                     department: survey.department?.id || survey.department,
                     survey_type: survey.survey_type?.id || survey.survey_type,
-                    site_ids: survey.site_ids?.map((site: any) => site.id || site) || [],
+                    site_ids: selectedSites.map((site) => site.id), // Use the 'id' for selected sites
                     is_location_based: survey.is_location_based,
                     is_image_required: survey.is_image_required,
                     is_active: survey.is_active
                 });
-
-                // Clear existing arrays
-                while (this.categories.length) this.categories.removeAt(0);
-                while (this.targets.length) this.targets.removeAt(0);
 
                 // Load questions into a default category
                 if (survey.questions && survey.questions.length > 0) {
@@ -347,12 +336,20 @@ export class SurveyEditComponent implements OnInit {
 
         this.surveyService.updateSurvey(this.surveyId, payload).subscribe({
             next: () => {
+                this.isLoading = false;
+
+                // Add success toast notification
                 this.messageService.add({
                     severity: 'success',
                     summary: 'Success',
-                    detail: 'Survey updated successfully!'
+                    detail: 'Survey updated successfully!',
+                    life: 3000 // Auto-hide after 3 seconds
                 });
-                this.router.navigate(['/survey']);
+
+                // Delay navigation to ensure the toast is shown before redirecting
+                setTimeout(() => {
+                    this.router.navigate(['/survey']);
+                }, 3000); // Adjust time to match the toast display time
             },
             error: (err) => {
                 this.isLoading = false;
@@ -364,6 +361,7 @@ export class SurveyEditComponent implements OnInit {
             }
         });
     }
+
 
     private prepareFormData(): any {
         const formValue = this.surveyForm.value;
