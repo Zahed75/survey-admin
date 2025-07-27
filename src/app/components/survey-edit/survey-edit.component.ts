@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule, FormControl } from '@angular/forms';
+import { FormBuilder, FormGroup, FormArray, Validators, FormControl, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SurveyService } from '../../../services/survey/survey.service';
+import { DepartmentService } from '../../../services/department/department.service';
 import { MessageService } from 'primeng/api';
 import { DropdownModule } from 'primeng/dropdown';
 import { Card } from 'primeng/card';
@@ -75,6 +76,7 @@ export class SurveyEditComponent implements OnInit {
         private fb: FormBuilder,
         private messageService: MessageService,
         private surveyService: SurveyService,
+        private departmentService: DepartmentService,
         private route: ActivatedRoute,
         private router: Router
     ) {
@@ -84,7 +86,6 @@ export class SurveyEditComponent implements OnInit {
     ngOnInit(): void {
         this.surveyId = +this.route.snapshot.paramMap.get('id')!;
         this.loadInitialData();
-        this.loadSurvey();
     }
 
     private initForm(): void {
@@ -104,32 +105,56 @@ export class SurveyEditComponent implements OnInit {
 
     private loadInitialData(): void {
         this.isDataLoading = true;
-        this.surveyService.getAllSurveyTypes().subscribe({
-            next: (res) => {
-                this.surveyTypes = res.data || [];
-                this.surveyService.getAllSites().subscribe({
-                    next: (siteRes) => {
-                        this.sites = siteRes.data || [];
-                        this.isDataLoading = false;
+
+        // Load departments first
+        this.departmentService.getAllDepartments().subscribe({
+            next: (deptRes) => {
+                this.departments = deptRes.data || [];
+
+                // Then load survey types
+                this.surveyService.getAllSurveyTypes().subscribe({
+                    next: (surveyTypeRes) => {
+                        this.surveyTypes = surveyTypeRes.data || [];
+
+                        // Then load sites
+                        this.surveyService.getAllSites().subscribe({
+                            next: (siteRes) => {
+                                this.sites = siteRes.data || [];
+
+                                // Finally load the survey data
+                                this.loadSurvey();
+                            },
+                            error: (siteErr) => {
+                                console.error('Failed to load sites:', siteErr);
+                                this.isDataLoading = false;
+                            }
+                        });
                     },
-                    error: () => (this.isDataLoading = false)
+                    error: (surveyTypeErr) => {
+                        console.error('Failed to load survey types:', surveyTypeErr);
+                        this.isDataLoading = false;
+                    }
                 });
             },
-            error: () => (this.isDataLoading = false)
+            error: (deptErr) => {
+                console.error('Failed to load departments:', deptErr);
+                this.isDataLoading = false;
+            }
         });
     }
 
     private loadSurvey(): void {
-        this.isDataLoading = true;
         this.surveyService.getSurveyById(this.surveyId).subscribe({
             next: (res) => {
                 const survey = res.data;
+
+                // Patch basic form values
                 this.surveyForm.patchValue({
                     title: survey.title,
                     description: survey.description,
-                    department: survey.department,
-                    survey_type: survey.survey_type,
-                    site_ids: survey.site_ids,
+                    department: survey.department?.id || survey.department,
+                    survey_type: survey.survey_type?.id || survey.survey_type,
+                    site_ids: survey.site_ids?.map((site: any) => site.id || site) || [],
                     is_location_based: survey.is_location_based,
                     is_image_required: survey.is_image_required,
                     is_active: survey.is_active
@@ -139,48 +164,16 @@ export class SurveyEditComponent implements OnInit {
                 while (this.categories.length) this.categories.removeAt(0);
                 while (this.targets.length) this.targets.removeAt(0);
 
-                // Load categories and questions
-                if (survey.categories) {
-                    survey.categories.forEach((cat: any) => {
-                        const categoryGroup = this.fb.group({
-                            name: [cat.name, Validators.required],
-                            questions: this.fb.array([])
-                        });
-                        this.categories.push(categoryGroup);
+                // Load questions into a default category
+                if (survey.questions && survey.questions.length > 0) {
+                    const defaultCategory = this.fb.group({
+                        name: ['General', Validators.required],
+                        questions: this.fb.array([])
+                    });
+                    this.categories.push(defaultCategory);
 
-                        if (cat.questions) {
-                            cat.questions.forEach((q: any) => {
-                                const questionGroup = this.fb.group({
-                                    text: [q.text, Validators.required],
-                                    type: [q.type, Validators.required],
-                                    hasMarks: [q.has_marks || false],
-                                    marks: [q.marks || 0],
-                                    isRequired: [q.is_required || true],
-                                    choices: this.fb.array([]),
-                                    yesValue: [false],
-                                    noValue: [false]
-                                });
-
-                                if (q.type === 'choice' && q.choices) {
-                                    q.choices.forEach((c: any) => {
-                                        const choiceGroup = this.fb.group({
-                                            text: [c.text, Validators.required],
-                                            isCorrect: [c.is_correct || false]
-                                        });
-                                        this.getQuestionChoices(this.categories.length - 1, this.getQuestions(this.categories.length - 1).length).push(choiceGroup);
-                                    });
-                                } else if (q.type === 'yesno' && q.choices) {
-                                    const yesChoice = q.choices.find((c: any) => c.text.toLowerCase() === 'yes');
-                                    const noChoice = q.choices.find((c: any) => c.text.toLowerCase() === 'no');
-                                    questionGroup.patchValue({
-                                        yesValue: yesChoice ? yesChoice.is_correct : false,
-                                        noValue: noChoice ? noChoice.is_correct : false
-                                    });
-                                }
-
-                                this.getQuestions(this.categories.length - 1).push(questionGroup);
-                            });
-                        }
+                    survey.questions.forEach((q: any) => {
+                        this.addQuestionToCategory(0, q);
                     });
                 }
 
@@ -188,11 +181,11 @@ export class SurveyEditComponent implements OnInit {
                 if (survey.targets) {
                     survey.targets.forEach((t: any) => {
                         const targetGroup = this.fb.group({
-                            target_type: [t.target_type],
-                            role_name: [t.role_name || ''],
-                            department: [t.department || null],
-                            site_id: [t.site_id || null],
-                            user_id: [t.user_id || null]
+                            target_type: t.target_type,
+                            role_name: t.role_name || '',
+                            department: t.department?.id || t.department || null,
+                            site_id: t.site_id?.id || t.site_id || null,
+                            user_id: t.user_id?.id || t.user_id || null
                         });
                         this.targets.push(targetGroup);
                     });
@@ -200,16 +193,51 @@ export class SurveyEditComponent implements OnInit {
 
                 this.isDataLoading = false;
             },
-            error: () => {
+            error: (err) => {
                 this.isDataLoading = false;
                 this.messageService.add({
                     severity: 'error',
                     summary: 'Error',
-                    detail: 'Failed to load survey'
+                    detail: 'Failed to load survey: ' + (err.error?.message || 'Unknown error')
                 });
                 this.router.navigate(['/survey']);
             }
         });
+    }
+
+    private addQuestionToCategory(catIdx: number, questionData: any): void {
+        const questionGroup = this.fb.group({
+            text: [questionData.text, Validators.required],
+            type: [questionData.type, Validators.required],
+            hasMarks: [questionData.has_marks || false],
+            marks: [questionData.marks || 0],
+            isRequired: [questionData.is_required !== false],
+            choices: this.fb.array([]),
+            yesValue: [false],
+            noValue: [false]
+        });
+
+        // Add choices for multiple choice questions
+        if (questionData.type === 'choice' && questionData.choices) {
+            questionData.choices.forEach((choice: any) => {
+                const choiceGroup = this.fb.group({
+                    text: [choice.text, Validators.required],
+                    isCorrect: [choice.is_correct || false]
+                });
+                (questionGroup.get('choices') as FormArray).push(choiceGroup);
+            });
+        }
+        // Set values for yes/no questions
+        else if (questionData.type === 'yesno' && questionData.choices) {
+            const yesChoice = questionData.choices.find((c: any) => c.text.toLowerCase() === 'yes');
+            const noChoice = questionData.choices.find((c: any) => c.text.toLowerCase() === 'no');
+            questionGroup.patchValue({
+                yesValue: yesChoice ? yesChoice.is_correct : false,
+                noValue: noChoice ? noChoice.is_correct : false
+            });
+        }
+
+        this.getQuestions(catIdx).push(questionGroup);
     }
 
     // Form array getters
@@ -305,7 +333,15 @@ export class SurveyEditComponent implements OnInit {
 
     // Form submission
     onSubmit(): void {
-        if (this.surveyForm.invalid) return;
+        if (this.surveyForm.invalid) {
+            this.messageService.add({
+                severity: 'warn',
+                summary: 'Validation',
+                detail: 'Please fill all required fields'
+            });
+            return;
+        }
+
         this.isLoading = true;
         const payload = this.prepareFormData();
 
@@ -323,7 +359,7 @@ export class SurveyEditComponent implements OnInit {
                 this.messageService.add({
                     severity: 'error',
                     summary: 'Error',
-                    detail: 'Failed to update survey: ' + (err.error?.message || 'Unknown')
+                    detail: 'Failed to update survey: ' + (err.error?.message || 'Unknown error')
                 });
             }
         });
@@ -361,17 +397,28 @@ export class SurveyEditComponent implements OnInit {
             });
         });
 
+        // Fix targets format to send only IDs
+        const fixedTargets = formValue.targets.map((target: any) => {
+            return {
+                target_type: target.target_type,
+                role_name: target.role_name,
+                department: target.department?.id || target.department,
+                site_id: target.site_id?.id || target.site_id,
+                user_id: target.user_id?.id || target.user_id
+            };
+        });
+
         return {
             title: formValue.title,
             description: formValue.description,
-            department: formValue.department,
-            survey_type: formValue.survey_type,
-            site_ids: formValue.site_ids,
+            department: formValue.department?.id || formValue.department,
+            survey_type: formValue.survey_type?.id || formValue.survey_type,
+            site_ids: formValue.site_ids?.map((site: any) => site.id || site) || [],
             is_location_based: formValue.is_location_based,
             is_image_required: formValue.is_image_required,
             is_active: formValue.is_active,
             questions: questions,
-            targets: formValue.targets
+            targets: fixedTargets
         };
     }
 

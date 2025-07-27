@@ -22,15 +22,33 @@
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Department*</label>
-                            <p-dropdown [options]="departments" formControlName="department" optionLabel="name" optionValue="id" placeholder="Select Department" class="w-full mt-1"></p-dropdown>
+                            <p-dropdown [options]="departments"
+                                        formControlName="department"
+                                        optionLabel="name"
+                                        optionValue="id"
+                                        placeholder="Select Department"
+                                        class="w-full mt-1">
+                            </p-dropdown>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Survey Type*</label>
-                            <p-dropdown [options]="surveyTypes" formControlName="survey_type" optionLabel="name" optionValue="id" placeholder="Select Survey Type" class="w-full mt-1"></p-dropdown>
+                            <p-dropdown [options]="surveyTypes"
+                                        formControlName="survey_type"
+                                        optionLabel="name"
+                                        optionValue="id"
+                                        placeholder="Select Survey Type"
+                                        class="w-full mt-1">
+                            </p-dropdown>
                         </div>
                         <div class="md:col-span-2">
                             <label class="block text-sm font-medium text-gray-700">Sites*</label>
-                            <p-multiSelect [options]="sites" formControlName="site_ids" optionLabel="site_code" optionValue="id" placeholder="Select Sites" class="w-full mt-1"></p-multiSelect>
+                            <p-multiSelect [options]="sites"
+                                           formControlName="site_ids"
+                                           optionLabel="site_code"
+                                           optionValue="id"
+                                           placeholder="Select Sites"
+                                           class="w-full mt-1">
+                            </p-multiSelect>
                         </div>
                     </div>
 
@@ -78,7 +96,13 @@
                                         </div>
                                         <div>
                                             <label class="block text-sm font-medium">Type*</label>
-                                            <p-dropdown [options]="questionTypes" formControlName="type" optionLabel="label" optionValue="value" (onChange)="onQuestionTypeChange(catIdx, qIdx)" class="w-full"></p-dropdown>
+                                            <p-dropdown [options]="questionTypes"
+                                                        formControlName="type"
+                                                        optionLabel="label"
+                                                        optionValue="value"
+                                                        (onChange)="onQuestionTypeChange(catIdx, qIdx)"
+                                                        class="w-full">
+                                            </p-dropdown>
                                         </div>
                                     </div>
 
@@ -149,7 +173,12 @@
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label class="block text-sm font-medium">Target Type</label>
-                                    <p-dropdown [options]="targetTypes" formControlName="target_type" optionLabel="label" optionValue="value" class="w-full"></p-dropdown>
+                                    <p-dropdown [options]="targetTypes"
+                                                formControlName="target_type"
+                                                optionLabel="label"
+                                                optionValue="value"
+                                                class="w-full">
+                                    </p-dropdown>
                                 </div>
 
                                 <div *ngIf="target.get('target_type')?.value === 'role'">
@@ -159,17 +188,32 @@
 
                                 <div *ngIf="target.get('target_type')?.value === 'department'">
                                     <label class="block text-sm font-medium">Department</label>
-                                    <p-dropdown [options]="departments" formControlName="department" optionLabel="name" class="w-full"></p-dropdown>
+                                    <p-dropdown [options]="departments"
+                                                formControlName="department"
+                                                optionLabel="name"
+                                                optionValue="id"
+                                                class="w-full">
+                                    </p-dropdown>
                                 </div>
 
                                 <div *ngIf="target.get('target_type')?.value === 'site'">
                                     <label class="block text-sm font-medium">Site</label>
-                                    <p-dropdown [options]="sites" formControlName="site_id" optionLabel="site_code" optionValue="id" class="w-full"></p-dropdown>
+                                    <p-dropdown [options]="sites"
+                                                formControlName="site_id"
+                                                optionLabel="site_code"
+                                                optionValue="id"
+                                                class="w-full">
+                                    </p-dropdown>
                                 </div>
 
                                 <div *ngIf="target.get('target_type')?.value === 'user'">
                                     <label class="block text-sm font-medium">User</label>
-                                    <p-dropdown [options]="users" formControlName="user_id" optionLabel="username" optionValue="id" class="w-full"></p-dropdown>
+                                    <p-dropdown [options]="users"
+                                                formControlName="user_id"
+                                                optionLabel="username"
+                                                optionValue="id"
+                                                class="w-full">
+                                    </p-dropdown>
                                 </div>
                             </div>
 
