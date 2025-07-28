@@ -1,4 +1,6 @@
-// === Updated survey.component.ts ===
+
+
+
 import { Component, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MessageService } from 'primeng/api';
@@ -30,7 +32,7 @@ interface QuestionPayload {
 @Component({
     selector: 'app-survey',
     templateUrl: './survey.component.html',
-    imports: [ReactiveFormsModule, Card, ProgressSpinner, DropdownModule, InputText, Textarea, MultiSelect, InputSwitch, Button, NgForOf, Checkbox, InputNumber, NgIf],
+    imports: [Card, ProgressSpinner, DropdownModule, InputText, Textarea, MultiSelect, InputSwitch, Button, NgForOf, Checkbox, InputNumber, NgIf, ReactiveFormsModule],
     providers: [MessageService]
 })
 export class SurveyComponent implements OnInit {
@@ -47,7 +49,7 @@ export class SurveyComponent implements OnInit {
         { label: 'Yes/No', value: 'yesno' },
         { label: 'Multiple Choice', value: 'choice' },
         { label: 'Image Upload', value: 'image' },
-        { label: 'Location', value: 'location' } // ✅ Added location type
+        { label: 'Location', value: 'location' }
     ];
 
     constructor(
@@ -71,7 +73,7 @@ export class SurveyComponent implements OnInit {
             description: [''],
             department: [null, Validators.required],
             survey_type: [null, Validators.required],
-            site_ids: [[], Validators.required],
+            site_ids: [[], Validators.required], // will be converted to site_codes in payload
             is_location_based: [false],
             is_image_required: [false],
             is_active: [true],
@@ -177,7 +179,9 @@ export class SurveyComponent implements OnInit {
     onSubmit(): void {
         if (this.surveyForm.invalid) return;
         this.isLoading = true;
+
         const payload = this.prepareFormData();
+        console.log('🚀 Submitting Survey Payload:', payload); // Debug log
 
         this.surveyService.createSurvey(payload).subscribe({
             next: () => {
@@ -186,7 +190,11 @@ export class SurveyComponent implements OnInit {
             },
             error: (err) => {
                 this.isLoading = false;
-                this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to create survey: ' + (err.error?.message || 'Unknown') });
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Error',
+                    detail: 'Failed to create survey: ' + (err.error?.message || JSON.stringify(err.error) || 'Unknown')
+                });
             }
         });
     }
@@ -208,7 +216,10 @@ export class SurveyComponent implements OnInit {
                 };
 
                 if (q.type === 'choice') {
-                    question.choices = q.choices.map((c: any) => ({ text: c.text, is_correct: c.isCorrect }));
+                    question.choices = q.choices.map((c: any) => ({
+                        text: c.text,
+                        is_correct: c.isCorrect
+                    }));
                 } else if (q.type === 'yesno') {
                     question.choices = [
                         { text: 'Yes', is_correct: q.yesValue },
@@ -225,7 +236,7 @@ export class SurveyComponent implements OnInit {
             description: formValue.description,
             department: formValue.department,
             survey_type: formValue.survey_type,
-            site_ids: formValue.site_ids,
+            site_ids: formValue.site_ids, // ✅ fixed
             is_location_based: formValue.is_location_based,
             is_image_required: formValue.is_image_required,
             is_active: formValue.is_active,
@@ -233,4 +244,5 @@ export class SurveyComponent implements OnInit {
             targets: formValue.targets
         };
     }
+
 }
