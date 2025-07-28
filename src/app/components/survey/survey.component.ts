@@ -36,8 +36,10 @@ export class SurveyComponent implements OnInit {
         { label: 'Yes/No', value: 'yesno' },
         { label: 'Multiple Choice', value: 'choice' },
         { label: 'Image Upload', value: 'image' },
-        { label: 'Location', value: 'location' }
+        { label: 'Location', value: 'location' },
+        { label: 'Remarks (Text Only)', value: 'remarks' }
     ];
+
 
     constructor(
         private fb: FormBuilder,
@@ -119,6 +121,7 @@ export class SurveyComponent implements OnInit {
             hasMarks: [false],
             marks: [0],
             isRequired: [true],
+            remarks: [''],
             choices: this.fb.array([]),
             yesValue: [false],
             noValue: [false]
@@ -169,7 +172,11 @@ export class SurveyComponent implements OnInit {
         const payload = this.prepareFormData();
         this.surveyService.createSurvey(payload).subscribe({
             next: () => {
-                this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Survey created successfully!' });
+                this.messageService.add({
+                    severity: 'success',
+                    summary: 'Success',
+                    detail: 'Survey created successfully!'
+                });
                 this.router.navigate(['/survey-list']);
             },
             error: (err) => {
@@ -195,6 +202,7 @@ export class SurveyComponent implements OnInit {
                     has_marks: q.hasMarks,
                     marks: q.marks,
                     is_required: q.isRequired,
+                    remarks: q.remarks || '',
                     category: cat.name,
                     choices: []
                 };

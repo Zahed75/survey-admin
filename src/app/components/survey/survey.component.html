@@ -87,7 +87,7 @@
                                             <p-checkbox formControlName="isRequired" [binary]="true"></p-checkbox>
                                             <label class="ml-2">Required</label>
                                         </div>
-                                        <div class="flex items-center" *ngIf="question.get('type')?.value !== 'image' && question.get('type')?.value !== 'location'">
+                                        <div class="flex items-center" *ngIf="!['image', 'location', 'remarks'].includes(question.get('type')?.value)">
                                             <p-inputSwitch formControlName="hasMarks" class="mr-2"></p-inputSwitch>
                                             <label>Has Marks</label>
                                         </div>
@@ -122,9 +122,9 @@
                                         </div>
                                     </div>
 
-                                    <!-- Info Text for Text/Image/Location -->
-                                    <div *ngIf="['text', 'image', 'location'].includes(question.get('type')?.value)" class="text-sm text-gray-500 mt-3">
-                                        Users will provide {{ question.get('type')?.value }} response.
+                                    <!-- Info Text -->
+                                    <div *ngIf="['text', 'image', 'location', 'remarks'].includes(question.get('type')?.value)" class="text-sm text-gray-500 mt-3">
+                                        Users will provide {{ question.get('type')?.value === 'remarks' ? 'remarks (display only)' : question.get('type')?.value }} response.
                                     </div>
                                 </div>
                             </div>
