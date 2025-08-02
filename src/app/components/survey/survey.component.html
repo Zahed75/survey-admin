@@ -1,8 +1,11 @@
+
+
+
+
+
 <div class="container mx-auto p-6">
     <p-card header="Create New Survey" class="shadow-md rounded-xl">
         <form [formGroup]="surveyForm" (ngSubmit)="onSubmit()" class="space-y-8">
-
-            <!-- Loading Spinner -->
             <div *ngIf="isDataLoading" class="flex justify-center items-center py-12">
                 <p-progressSpinner></p-progressSpinner>
             </div>
@@ -14,7 +17,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Survey Title*</label>
-                            <input pInputText formControlName="title" class="w-full mt-1">
+                            <input pInputText formControlName="title" class="w-full mt-1" />
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Description</label>
@@ -60,7 +63,7 @@
                     <div formArrayName="categories" class="space-y-6">
                         <div *ngFor="let category of categories.controls; let catIdx = index" [formGroupName]="catIdx" class="border rounded-lg shadow-sm p-4 bg-white">
                             <div class="flex justify-between items-center mb-4">
-                                <input pInputText formControlName="name" class="text-lg font-semibold w-2/3" placeholder="Enter category name">
+                                <input pInputText formControlName="name" class="text-lg font-semibold w-2/3" placeholder="Enter category name" />
                                 <p-button icon="pi pi-trash" (onClick)="removeCategory(catIdx)" styleClass="p-button-danger p-button-sm p-button-outlined"></p-button>
                             </div>
 
@@ -74,7 +77,7 @@
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
                                             <label class="block text-sm font-medium">Text*</label>
-                                            <input pInputText formControlName="text" class="w-full">
+                                            <input pInputText formControlName="text" class="w-full" />
                                         </div>
                                         <div>
                                             <label class="block text-sm font-medium">Type*</label>
@@ -87,7 +90,7 @@
                                             <p-checkbox formControlName="isRequired" [binary]="true"></p-checkbox>
                                             <label class="ml-2">Required</label>
                                         </div>
-                                        <div class="flex items-center" *ngIf="!['image', 'location', 'remarks'].includes(question.get('type')?.value)">
+                                        <div class="flex items-center">
                                             <p-inputSwitch formControlName="hasMarks" class="mr-2"></p-inputSwitch>
                                             <label>Has Marks</label>
                                         </div>
@@ -102,7 +105,7 @@
                                         <label class="font-medium">Choices</label>
                                         <div formArrayName="choices" class="space-y-2 mt-2">
                                             <div *ngFor="let choice of getQuestionChoices(catIdx, qIdx).controls; let cIdx = index" [formGroupName]="cIdx" class="flex items-center gap-3">
-                                                <input pInputText formControlName="text" class="flex-1" placeholder="Option text">
+                                                <input pInputText formControlName="text" class="flex-1" placeholder="Option text" />
                                                 <p-checkbox formControlName="isCorrect" [binary]="true"></p-checkbox>
                                                 <p-button icon="pi pi-trash" (onClick)="removeChoice(catIdx, qIdx, cIdx)" styleClass="p-button-danger p-button-sm p-button-text"></p-button>
                                             </div>
@@ -122,14 +125,18 @@
                                         </div>
                                     </div>
 
-                                    <!-- Info Text -->
+                                    <!-- Info Text for other types -->
                                     <div *ngIf="['text', 'image', 'location', 'remarks'].includes(question.get('type')?.value)" class="text-sm text-gray-500 mt-3">
                                         Users will provide {{ question.get('type')?.value === 'remarks' ? 'remarks (display only)' : question.get('type')?.value }} response.
+                                    </div>
+
+                                    <!-- Linear Scale Type -->
+                                    <div *ngIf="question.get('type')?.value === 'linear'" class="text-sm text-gray-600 mt-3">
+                                        Users will provide a numeric answer from 1 to 20.
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Add Question Button Below Each Category -->
                             <div class="flex justify-end mt-4">
                                 <p-button icon="pi pi-plus" label="Add Question" (onClick)="addQuestion(catIdx)" styleClass="p-button-sm p-button-outlined"></p-button>
                             </div>

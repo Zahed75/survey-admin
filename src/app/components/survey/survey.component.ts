@@ -1,4 +1,3 @@
-// ✅ Fixed SurveyComponent with correct key mappings for backend
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators, FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -37,9 +36,9 @@ export class SurveyComponent implements OnInit {
         { label: 'Multiple Choice', value: 'choice' },
         { label: 'Image Upload', value: 'image' },
         { label: 'Location', value: 'location' },
-        { label: 'Remarks (Text Only)', value: 'remarks' }
+        { label: 'Remarks (Text Only)', value: 'remarks' },
+        { label: 'Linear Scale (1-20)', value: 'linear' }
     ];
-
 
     constructor(
         private fb: FormBuilder,
@@ -124,7 +123,8 @@ export class SurveyComponent implements OnInit {
             remarks: [''],
             choices: this.fb.array([]),
             yesValue: [false],
-            noValue: [false]
+            noValue: [false],
+            linearValue: [1]
         });
         this.getQuestions(catIdx).push(question);
     }
@@ -217,6 +217,8 @@ export class SurveyComponent implements OnInit {
                         { text: 'Yes', is_correct: q.yesValue === true },
                         { text: 'No', is_correct: q.noValue === true }
                     ];
+                } else if (q.type === 'linear') {
+                    question.linear_value = q.linearValue || 1; // ✅ Added here
                 }
 
                 questions.push(question);
