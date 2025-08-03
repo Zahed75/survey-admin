@@ -37,7 +37,7 @@ export class SurveyComponent implements OnInit {
         { label: 'Image Upload', value: 'image' },
         { label: 'Location', value: 'location' },
         { label: 'Remarks (Text Only)', value: 'remarks' },
-        { label: 'Linear Scale (1-20)', value: 'linear' }
+        { label: 'Linear Scale (Custom)', value: 'linear' }
     ];
 
     constructor(
@@ -122,9 +122,12 @@ export class SurveyComponent implements OnInit {
             isRequired: [true],
             remarks: [''],
             choices: this.fb.array([]),
+            multipleScore: [false],
             yesValue: [false],
             noValue: [false],
-            linearValue: [1]
+            minValue: [0],
+            maxValue: [10],
+            linearValue: [0]
         });
         this.getQuestions(catIdx).push(question);
     }
@@ -138,9 +141,12 @@ export class SurveyComponent implements OnInit {
     }
 
     addChoice(catIdx: number, qIdx: number): void {
+        const question = this.getQuestions(catIdx).at(qIdx);
+        const isMultiScore = question.get('multipleScore')?.value;
         const choice = this.fb.group({
             text: ['', Validators.required],
-            isCorrect: [false]
+            isCorrect: [false],
+            marks: [isMultiScore ? 0 : null]
         });
         this.getQuestionChoices(catIdx, qIdx).push(choice);
     }
@@ -159,6 +165,14 @@ export class SurveyComponent implements OnInit {
         while (choices.length !== 0) choices.removeAt(0);
         if (question.get('type')?.value === 'yesno') {
             question.patchValue({ yesValue: false, noValue: false });
+        }
+    }
+
+    onLinearMaxValueChange(catIdx: number, qIdx: number): void {
+        const question = this.getQuestions(catIdx).at(qIdx);
+        const maxValue = question.get('maxValue')?.value;
+        if (!isNaN(maxValue) && maxValue >= 0) {
+            question.patchValue({ marks: maxValue });
         }
     }
 
@@ -204,13 +218,15 @@ export class SurveyComponent implements OnInit {
                     is_required: q.isRequired,
                     remarks: q.remarks || '',
                     category: cat.name,
-                    choices: []
+                    choices: [],
+                    multiple_score: q.multipleScore || false
                 };
 
                 if (q.type === 'choice') {
                     question.choices = q.choices.map((c: any) => ({
                         text: c.text,
-                        is_correct: c.isCorrect === true
+                        is_correct: c.isCorrect,
+                        marks: q.multipleScore ? c.marks : undefined
                     }));
                 } else if (q.type === 'yesno') {
                     question.choices = [
@@ -218,7 +234,8 @@ export class SurveyComponent implements OnInit {
                         { text: 'No', is_correct: q.noValue === true }
                     ];
                 } else if (q.type === 'linear') {
-                    question.linear_value = q.linearValue || 1; // ✅ Added here
+                    question.min_value = q.minValue;
+                    question.max_value = q.maxValue;
                 }
 
                 questions.push(question);
