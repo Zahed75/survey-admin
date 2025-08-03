@@ -80,6 +80,14 @@
                                         </div>
                                     </div>
 
+                                    <!-- Marks Section (Visible when "hasMarks" is true) -->
+                                    <div *ngIf="question.get('hasMarks')?.value" class="flex flex-wrap gap-6 items-center mt-4">
+                                        <div class="flex items-center">
+                                            <label class="text-sm text-gray-700">Marks</label>
+                                            <p-inputNumber formControlName="marks" class="w-24 mt-1" [min]="1" [max]="question.get('type')?.value === 'multiple_scoring' ? question.get('marks')?.value : 100"></p-inputNumber>
+                                        </div>
+                                    </div>
+
                                     <div class="flex flex-wrap gap-6 items-center mt-4">
                                         <div class="flex items-center">
                                             <p-checkbox formControlName="isRequired" [binary]="true"></p-checkbox>
@@ -89,24 +97,15 @@
                                             <p-inputSwitch formControlName="hasMarks" class="mr-2"></p-inputSwitch>
                                             <label>Has Marks</label>
                                         </div>
-                                        <div *ngIf="question.get('type')?.value === 'choice'" class="flex items-center">
-                                            <p-checkbox formControlName="multipleScore" [binary]="true" class="mr-2"></p-checkbox>
-                                            <label>Multiple Score Mode</label>
-                                        </div>
-                                        <div *ngIf="question.get('hasMarks')?.value && question.get('type')?.value !== 'linear'">
-                                            <label class="block text-sm font-medium">Marks</label>
-                                            <p-inputNumber formControlName="marks" class="w-24"></p-inputNumber>
-                                        </div>
                                     </div>
 
-                                    <!-- Choice Type -->
-                                    <div *ngIf="question.get('type')?.value === 'choice'" class="mt-4">
-                                        <label class="font-medium">Choices</label>
+                                    <!-- Question Types -->
+                                    <div *ngIf="question.get('type')?.value === 'multiple_scoring'">
+                                        <label class="font-medium">Choices (with Scores)</label>
                                         <div formArrayName="choices" class="space-y-2 mt-2">
                                             <div *ngFor="let choice of getQuestionChoices(catIdx, qIdx).controls; let cIdx = index" [formGroupName]="cIdx" class="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center">
                                                 <input pInputText formControlName="text" class="sm:col-span-5" placeholder="Option text" />
-                                                <p-checkbox formControlName="isCorrect" [binary]="true" class="sm:col-span-2"></p-checkbox>
-                                                <p-inputNumber *ngIf="question.get('multipleScore')?.value" formControlName="marks" class="sm:col-span-3"></p-inputNumber>
+                                                <p-inputNumber formControlName="marks" class="sm:col-span-3" placeholder="Marks" />
                                                 <div class="sm:col-span-2 text-right">
                                                     <p-button icon="pi pi-trash" (onClick)="removeChoice(catIdx, qIdx, cIdx)" styleClass="p-button-danger p-button-sm p-button-text"></p-button>
                                                 </div>
@@ -127,7 +126,7 @@
                                         </div>
                                         <div>
                                             <label>Total Marks</label>
-                                            <input pInputText formControlName="marks" class="w-full"  />
+                                            <input pInputText formControlName="marks" class="w-full" />
                                         </div>
                                     </div>
 

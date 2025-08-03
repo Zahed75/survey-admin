@@ -23,6 +23,8 @@ import { Router } from '@angular/router';
     templateUrl: './survey.component.html',
     providers: [MessageService]
 })
+
+
 export class SurveyComponent implements OnInit {
     surveyForm!: FormGroup;
     isLoading = false;
@@ -38,7 +40,8 @@ export class SurveyComponent implements OnInit {
         { label: 'Image Upload', value: 'image' },
         { label: 'Location', value: 'location' },
         { label: 'Remarks (Text Only)', value: 'remarks' },
-        { label: 'Linear Scale (Custom)', value: 'linear' }
+        { label: 'Linear Scale (Custom)', value: 'linear' },
+        { label: 'Multiple Scoring', value: 'multiple_scoring' } // Added multiple scoring type
     ];
 
     constructor(
@@ -161,7 +164,18 @@ export class SurveyComponent implements OnInit {
     onQuestionTypeChange(catIdx: number, qIdx: number): void {
         const question = this.getQuestions(catIdx).at(qIdx);
         const choices = question.get('choices') as FormArray;
-        while (choices.length !== 0) choices.removeAt(0);
+
+        // Clear all choices if the question type changes
+        while (choices.length !== 0) {
+            choices.removeAt(0);
+        }
+
+        // If it's a multiple scoring question, initialize with empty choices
+        if (question.get('type')?.value === 'multiple_scoring') {
+            // Add a placeholder choice when it's 'multiple_scoring'
+            this.addChoice(catIdx, qIdx);
+        }
+
         if (question.get('type')?.value === 'yesno') {
             question.patchValue({ yesValue: false, noValue: false });
         }
@@ -232,6 +246,11 @@ export class SurveyComponent implements OnInit {
                         { text: 'Yes', is_correct: q.yesValue === true, marks: q.hasMarks ? 0 : undefined },
                         { text: 'No', is_correct: q.noValue === true, marks: q.hasMarks ? 0 : undefined }
                     ];
+                } else if (q.type === 'multiple_scoring') {
+                    question.choices = q.choices.map((c: any) => ({
+                        text: c.text,
+                        marks: c.marks
+                    }));
                 } else if (q.type === 'linear') {
                     question.min_value = q.min_value;
                     question.max_value = q.max_value;
@@ -255,3 +274,4 @@ export class SurveyComponent implements OnInit {
         };
     }
 }
+
