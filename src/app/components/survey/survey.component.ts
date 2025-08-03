@@ -1,25 +1,26 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, FormArray, Validators, FormControl, ReactiveFormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
-import { MessageService } from 'primeng/api';
+import { CommonModule } from '@angular/common';
+import { FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { DropdownModule } from 'primeng/dropdown';
+import { CardModule } from 'primeng/card';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { InputTextModule } from 'primeng/inputtext';
+import { InputSwitchModule } from 'primeng/inputswitch';
+import { MultiSelectModule } from 'primeng/multiselect';
+import { ButtonModule } from 'primeng/button';
+import { CheckboxModule } from 'primeng/checkbox';
+import { InputNumberModule } from 'primeng/inputnumber';
+import { Textarea } from 'primeng/textarea';
 import { SurveyService } from '../../../services/survey/survey.service';
 import { DepartmentService } from '../../../services/department/department.service';
-import { DropdownModule } from 'primeng/dropdown';
-import { Card } from 'primeng/card';
-import { ProgressSpinner } from 'primeng/progressspinner';
-import { NgForOf, NgIf } from '@angular/common';
-import { InputText } from 'primeng/inputtext';
-import { InputSwitch } from 'primeng/inputswitch';
-import { MultiSelect } from 'primeng/multiselect';
-import { Button } from 'primeng/button';
-import { Checkbox } from 'primeng/checkbox';
-import { InputNumber } from 'primeng/inputnumber';
-import { Textarea } from 'primeng/textarea';
+import { MessageService } from 'primeng/api';
+import { Router } from '@angular/router';
 
 @Component({
     selector: 'app-survey',
+    standalone: true,
+    imports: [CommonModule, ReactiveFormsModule, DropdownModule, CardModule, ProgressSpinnerModule, InputTextModule, InputSwitchModule, MultiSelectModule, ButtonModule, CheckboxModule, InputNumberModule, Textarea],
     templateUrl: './survey.component.html',
-    imports: [DropdownModule, Card, ReactiveFormsModule, ProgressSpinner, NgIf, InputText, InputSwitch, MultiSelect, Button, NgForOf, Checkbox, InputNumber, Textarea],
     providers: [MessageService]
 })
 export class SurveyComponent implements OnInit {
@@ -125,9 +126,8 @@ export class SurveyComponent implements OnInit {
             multipleScore: [false],
             yesValue: [false],
             noValue: [false],
-            minValue: [0],
-            maxValue: [10],
-            linearValue: [0]
+            min_value: [0],
+            max_value: [10]
         });
         this.getQuestions(catIdx).push(question);
     }
@@ -142,11 +142,10 @@ export class SurveyComponent implements OnInit {
 
     addChoice(catIdx: number, qIdx: number): void {
         const question = this.getQuestions(catIdx).at(qIdx);
-        const isMultiScore = question.get('multipleScore')?.value;
         const choice = this.fb.group({
             text: ['', Validators.required],
             isCorrect: [false],
-            marks: [isMultiScore ? 0 : null]
+            marks: [0]
         });
         this.getQuestionChoices(catIdx, qIdx).push(choice);
     }
@@ -170,7 +169,7 @@ export class SurveyComponent implements OnInit {
 
     onLinearMaxValueChange(catIdx: number, qIdx: number): void {
         const question = this.getQuestions(catIdx).at(qIdx);
-        const maxValue = question.get('maxValue')?.value;
+        const maxValue = question.get('max_value')?.value;
         if (!isNaN(maxValue) && maxValue >= 0) {
             question.patchValue({ marks: maxValue });
         }
@@ -226,16 +225,16 @@ export class SurveyComponent implements OnInit {
                     question.choices = q.choices.map((c: any) => ({
                         text: c.text,
                         is_correct: c.isCorrect,
-                        marks: q.multipleScore ? c.marks : undefined
+                        marks: q.hasMarks ? c.marks : undefined
                     }));
                 } else if (q.type === 'yesno') {
                     question.choices = [
-                        { text: 'Yes', is_correct: q.yesValue === true },
-                        { text: 'No', is_correct: q.noValue === true }
+                        { text: 'Yes', is_correct: q.yesValue === true, marks: q.hasMarks ? 0 : undefined },
+                        { text: 'No', is_correct: q.noValue === true, marks: q.hasMarks ? 0 : undefined }
                     ];
                 } else if (q.type === 'linear') {
-                    question.min_value = q.minValue;
-                    question.max_value = q.maxValue;
+                    question.min_value = q.min_value;
+                    question.max_value = q.max_value;
                 }
 
                 questions.push(question);
