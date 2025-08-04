@@ -14,7 +14,8 @@ import { AppMenuitem } from './app.menuitem';
                 <li app-menuitem *ngIf="!item.separator" [item]="item" [index]="i" [root]="true"></li>
                 <li *ngIf="item.separator" class="menu-separator"></li>
             </ng-container>
-        </ul> `
+        </ul>
+    `
 })
 export class AppMenu {
     model: MenuItem[] = [];
@@ -35,7 +36,6 @@ export class AppMenu {
                         label: 'Sites & Permission',
                         icon: 'pi pi-fw pi-users',
                         items: [
-
                             {
                                 label: 'Role',
                                 icon: 'pi pi-fw pi-users',
@@ -44,15 +44,13 @@ export class AppMenu {
                             {
                                 label: 'Department',
                                 icon: 'pi pi-fw pi-building',
-                                routerLink: ['/department']  // Ensure this is correct
+                                routerLink: ['/department'] // Ensure this is correct
                             },
                             {
-                                label:'Survey-Type',
+                                label: 'Survey-Type',
                                 icon: 'pi pi-fw pi-venus',
                                 routerLink: ['/survey-type']
                             }
-
-
                         ]
                     }
                 ]
@@ -77,7 +75,6 @@ export class AppMenu {
                         icon: 'pi pi-fw pi-window-maximize',
                         routerLink: ['/survey-target']
                     }
-
                 ]
             }
         ];
