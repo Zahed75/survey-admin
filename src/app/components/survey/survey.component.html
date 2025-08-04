@@ -80,14 +80,6 @@
                                         </div>
                                     </div>
 
-                                    <!-- Marks Section (Visible when "hasMarks" is true) -->
-                                    <div *ngIf="question.get('hasMarks')?.value" class="flex flex-wrap gap-6 items-center mt-4">
-                                        <div class="flex items-center">
-                                            <label class="text-sm text-gray-700">Marks</label>
-                                            <p-inputNumber formControlName="marks" class="w-24 mt-1" [min]="1" [max]="question.get('type')?.value === 'multiple_scoring' ? question.get('marks')?.value : 100"></p-inputNumber>
-                                        </div>
-                                    </div>
-
                                     <div class="flex flex-wrap gap-6 items-center mt-4">
                                         <div class="flex items-center">
                                             <p-checkbox formControlName="isRequired" [binary]="true"></p-checkbox>
@@ -99,9 +91,30 @@
                                         </div>
                                     </div>
 
-                                    <!-- Question Types -->
-                                    <div *ngIf="question.get('type')?.value === 'multiple_scoring'">
-                                        <label class="font-medium">Choices (with Scores)</label>
+                                    <!-- Marks Section -->
+                                    <div *ngIf="question.get('hasMarks')?.value" class="flex items-center mt-4">
+                                        <label class="block text-sm font-medium">Marks</label>
+                                        <p-inputNumber formControlName="marks" class="w-24 mt-1" [min]="1"></p-inputNumber>
+                                    </div>
+
+                                    <!-- Choice Type -->
+                                    <div *ngIf="question.get('type')?.value === 'choice'" class="mt-4">
+                                        <label class="font-medium">Choices</label>
+                                        <div formArrayName="choices" class="space-y-2 mt-2">
+                                            <div *ngFor="let choice of getQuestionChoices(catIdx, qIdx).controls; let cIdx = index" [formGroupName]="cIdx" class="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center">
+                                                <input pInputText formControlName="text" class="sm:col-span-5" placeholder="Option text" />
+                                                <p-checkbox formControlName="isCorrect" [binary]="true" class="sm:col-span-2"></p-checkbox>
+                                                <div class="sm:col-span-2 text-right">
+                                                    <p-button icon="pi pi-trash" (onClick)="removeChoice(catIdx, qIdx, cIdx)" styleClass="p-button-danger p-button-sm p-button-text"></p-button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <p-button label="Add Option" icon="pi pi-plus" (onClick)="addChoice(catIdx, qIdx)" styleClass="p-button-sm p-button-outlined mt-2"></p-button>
+                                    </div>
+
+                                    <!-- Multiple Scoring Type -->
+                                    <div *ngIf="question.get('type')?.value === 'multiple_scoring'" class="mt-4">
+                                        <label class="font-medium">Multiple Scoring Choices</label>
                                         <div formArrayName="choices" class="space-y-2 mt-2">
                                             <div *ngFor="let choice of getQuestionChoices(catIdx, qIdx).controls; let cIdx = index" [formGroupName]="cIdx" class="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center">
                                                 <input pInputText formControlName="text" class="sm:col-span-5" placeholder="Option text" />
