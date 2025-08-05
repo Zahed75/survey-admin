@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { surveyEnviornment } from '../../enviornments/enviornment';
+import { survey_app } from '../../enviornments/enviornment';
 import { Observable } from 'rxjs';
 import { MessageService } from 'primeng/api';
 
@@ -8,7 +8,7 @@ import { MessageService } from 'primeng/api';
     providedIn: 'root'
 })
 export class DepartmentService {
-    private apiUrl = `${surveyEnviornment.apiBaseUrl}/survey/api/departments`;
+    private apiUrl = `${survey_app.apiBaseUrl}/survey/api/departments`;
 
     constructor(private http: HttpClient) {}
 

@@ -1,5 +1,3 @@
-
-
 import { Routes } from '@angular/router';
 import { AppLayout } from './app/layout/component/app.layout';
 import { Dashboard } from './app/pages/dashboard/dashboard';
@@ -16,6 +14,7 @@ import { VerifyOtpComponent } from './app/components/verify-otp/verify-otp.compo
 import { SurveyTypeComponent } from './app/components/survey-type/survey-type.component';
 import { SurveyListComponent } from './app/components/survey-list/survey-list.component';
 import { SurveyEditComponent } from './app/components/survey-edit/survey-edit.component';
+import { ReportsComponent } from './app/components/reports/reports.component';
 
 export const appRoutes: Routes = [
     // Public routes (no auth required)
@@ -37,8 +36,8 @@ export const appRoutes: Routes = [
             { path: 'survey-target', component: SurveyTargetComponent },
             { path: 'survey-type', component: SurveyTypeComponent },
             { path: 'survey-edit/:id', component: SurveyEditComponent },
-
-            {path:'survey-list',component: SurveyListComponent },
+            { path: 'survey-reports', component: ReportsComponent },
+            { path: 'survey-list', component: SurveyListComponent },
             {
                 path: 'pages',
                 loadChildren: () => import('./app/pages/pages.routes'),

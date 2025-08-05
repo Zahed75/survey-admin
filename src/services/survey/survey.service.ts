@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { surveyEnviornment } from '../../enviornments/enviornment';
+import { survey_app } from '../../enviornments/enviornment';
 import { Observable } from 'rxjs';
 import { AuthService } from '../../services/auth/auth.service'; // Add this import
 
@@ -8,7 +8,7 @@ import { AuthService } from '../../services/auth/auth.service'; // Add this impo
     providedIn: 'root'
 })
 export class SurveyService {
-    private apiUrl = `${surveyEnviornment.apiBaseUrl}/survey/api`;
+    private apiUrl = `${survey_app.apiBaseUrl}/survey/api`;
 
     constructor(
         private http: HttpClient,
