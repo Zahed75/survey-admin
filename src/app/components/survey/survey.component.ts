@@ -15,16 +15,15 @@ import { SurveyService } from '../../../services/survey/survey.service';
 import { DepartmentService } from '../../../services/department/department.service';
 import { MessageService } from 'primeng/api';
 import { Router } from '@angular/router';
+import { Toast } from 'primeng/toast';
 
 @Component({
     selector: 'app-survey',
     standalone: true,
-    imports: [CommonModule, ReactiveFormsModule, DropdownModule, CardModule, ProgressSpinnerModule, InputTextModule, InputSwitchModule, MultiSelectModule, ButtonModule, CheckboxModule, InputNumberModule, Textarea],
+    imports: [CommonModule, ReactiveFormsModule, DropdownModule, CardModule, ProgressSpinnerModule, InputTextModule, InputSwitchModule, MultiSelectModule, ButtonModule, CheckboxModule, InputNumberModule, Textarea, Toast],
     templateUrl: './survey.component.html',
     providers: [MessageService]
 })
-
-
 export class SurveyComponent implements OnInit {
     surveyForm!: FormGroup;
     isLoading = false;

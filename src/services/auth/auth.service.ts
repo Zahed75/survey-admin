@@ -1,22 +1,19 @@
+// src/app/services/auth/auth.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, tap } from 'rxjs';
 import { environmentCentral } from '../../enviornments/enviornment';
 
-@Injectable({
-    providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class AuthService {
-    private baseURL = `${environmentCentral.apiBaseUrl}`;
+    private baseURL = `${environmentCentral.apiBaseUrl}`; // e.g. https://api.shwapno.app
     private tokenKey = 'access_token';
+    private refreshKey = 'refresh_token';
     private userKey = 'current_user';
     redirectUrl: string | null = null;
 
-    constructor(
-        private http: HttpClient,
-        private router: Router
-    ) { }
+    constructor(private http: HttpClient, private router: Router) {}
 
     // Register new user
     register(userData: {
@@ -24,35 +21,39 @@ export class AuthService {
         phone_number: string;
         password: string;
         email: string;
-        staff_id: number;
+        staff_id: number | string;
         designation: string;
     }): Observable<any> {
-        return this.http.post(`${this.baseURL}api/user/register`, userData);
+        // NOTE: added missing slash after baseURL
+        return this.http.post(`${this.baseURL}/api/user/register`, userData);
     }
 
-    // Verify OTP
-    verifyOTP(otpData: {
-        phone_number: string;
-        otp: number;
-    }): Observable<any> {
+    // Verify OTP (kept as-is; adjust if your verify API returns different shape)
+    verifyOTP(otpData: { phone_number: string; otp: number }): Observable<any> {
         return this.http.post(`${this.baseURL}/verify-otp`, otpData).pipe(
             tap((response: any) => {
-                if (response.user) {
-                    this.setUser(response.user);
-                }
+                // If your verify endpoint returns a "user" object/array, persist it
+                const rawUser = Array.isArray(response?.user) ? response.user[0] : response?.user;
+                if (rawUser) this.setUser(rawUser);
             })
         );
     }
 
-    // Login user
-    login(credentials: {
-        phone_number: string;
-        password: string;
-    }): Observable<any> {
+    // Login user — parse token from user[0].access_token
+    login(credentials: { phone_number: string; password: string }): Observable<any> {
         return this.http.post(`${this.baseURL}/api/user/login`, credentials).pipe(
             tap((response: any) => {
-                this.setToken(response.access_token);
-                this.setUser(response.user);
+                // Response example:
+                // { message: 'Login successful.', user: [{ access_token, refresh_token, ... }] }
+                const rawUser = Array.isArray(response?.user) ? response.user[0] : response?.user;
+
+                const access = rawUser?.access_token;
+                const refresh = rawUser?.refresh_token;
+
+                if (access) this.setToken(access);
+                if (refresh) localStorage.setItem(this.refreshKey, refresh);
+
+                if (rawUser) this.setUser(rawUser);
             })
         );
     }
@@ -63,72 +64,55 @@ export class AuthService {
         this.router.navigate(['/sign-in']);
     }
 
-    // Check if user is authenticated
+    // Check if user is authenticated (token-based)
     isAuthenticated(): boolean {
         return !!this.getToken();
     }
 
-
-
     // Get current user
     getCurrentUser(): any {
-        const user = localStorage.getItem(this.userKey);
-        return user ? JSON.parse(user) : null;
+        const raw = localStorage.getItem(this.userKey);
+        return raw ? JSON.parse(raw) : null;
     }
 
-    // Get user role
+    // Get user role (supports role object { name: 'user' } or plain string)
     getRole(): string | null {
-        const user = this.getCurrentUser();
-        return user ? user.role : null;
+        const u = this.getCurrentUser();
+        const r = u?.role;
+        return r?.name ?? (typeof r === 'string' ? r : null);
     }
 
-    // Check if user is staff
-    isStaff(): boolean {
-        return this.getRole() === 'staff';
-    }
-
-
-
-
-
+    // Token helpers
     getToken(): string | null {
-        const token = localStorage.getItem(this.tokenKey); // Changed TOKEN_KEY to tokenKey
-        console.log('Retrieved token:', token);
-        return token;
+        return localStorage.getItem(this.tokenKey);
     }
 
     setToken(token: string): void {
-        console.log('Setting token:', token);
-        localStorage.setItem(this.tokenKey, token); // Changed TOKEN_KEY to tokenKey
+        if (token) localStorage.setItem(this.tokenKey, token);
     }
 
-
-
     private setUser(user: any): void {
+        // Store a single user object, not the array
         localStorage.setItem(this.userKey, JSON.stringify(user));
     }
 
     private clearAuthData(): void {
         localStorage.removeItem(this.tokenKey);
+        localStorage.removeItem(this.refreshKey);
         localStorage.removeItem(this.userKey);
     }
 
-    // Token refresh (if needed)
+    // Optional: implement if your API supports token refresh
     refreshToken(): Observable<any> {
-        // Implement if your API supports token refresh
         throw new Error('Not implemented');
     }
 
-    // Check permissions (extend as needed)
+    // Example permission check (adjust to your needs)
     hasPermission(permission: string): boolean {
-        // Implement your permission logic based on user role
-        const user = this.getCurrentUser();
-        if (!user) return false;
-
-        // Example permission check - adjust based on your requirements
-        if (user.role === 'admin') return true;
-        if (user.role === 'staff' && permission === 'dashboard') return true;
-
+        const role = this.getRole();
+        if (!role) return false;
+        if (role === 'admin') return true;
+        if (role === 'staff' && permission === 'dashboard') return true;
         return false;
     }
 }

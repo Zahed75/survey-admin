@@ -3,7 +3,9 @@ import { FormBuilder, FormGroup, FormArray, Validators, FormControl, ReactiveFor
 import { ActivatedRoute, Router } from '@angular/router';
 import { SurveyService } from '../../../services/survey/survey.service';
 import { DepartmentService } from '../../../services/department/department.service';
+import { AuthService } from '../../../services/auth/auth.service';
 import { MessageService } from 'primeng/api';
+
 import { DropdownModule } from 'primeng/dropdown';
 import { Card } from 'primeng/card';
 import { InputText } from 'primeng/inputtext';
@@ -17,20 +19,36 @@ import { InputNumber } from 'primeng/inputnumber';
 import { ProgressSpinner } from 'primeng/progressspinner';
 import { Toast } from 'primeng/toast';
 
+import { survey_app } from '../../../enviornments/enviornment';
+
+interface SiteOption {
+    id: number;
+    site_code: string;
+    name?: string;
+}
+
 interface QuestionPayload {
     text: string;
     type: string;
     has_marks: boolean;
     marks: number;
     is_required: boolean;
+    remarks?: string;
     category: string;
-    choices: { text: string; is_correct: boolean }[];
+    choices: { text: string; is_correct?: boolean; marks?: number }[];
+    multiple_score?: boolean;
+    min_value?: number;
+    max_value?: number;
 }
 
 @Component({
     selector: 'app-survey-edit',
     templateUrl: './survey-edit.component.html',
-    imports: [ReactiveFormsModule, DropdownModule, Card, InputText, Textarea, MultiSelect, InputSwitch, Button, NgForOf, Checkbox, InputNumber, NgIf, ProgressSpinner, Toast],
+    standalone: true,
+    imports: [
+        ReactiveFormsModule, DropdownModule, Card, InputText, Textarea, MultiSelect,
+        InputSwitch, Button, NgForOf, Checkbox, InputNumber, NgIf, ProgressSpinner, Toast
+    ],
     providers: [MessageService]
 })
 export class SurveyEditComponent implements OnInit {
@@ -41,22 +59,17 @@ export class SurveyEditComponent implements OnInit {
 
     departments: any[] = [];
     surveyTypes: any[] = [];
-    sites: any[] = [];
-    users: any[] = [];
+    sites: SiteOption[] = []; // options shown in MultiSelect (by codes)
 
     questionTypes = [
         { label: 'Text Answer', value: 'text' },
         { label: 'Yes/No', value: 'yesno' },
         { label: 'Multiple Choice', value: 'choice' },
         { label: 'Image Upload', value: 'image' },
-        { label: 'Location', value: 'location' }
-    ];
-
-    targetTypes = [
-        { label: 'Role', value: 'role' },
-        { label: 'Department', value: 'department' },
-        { label: 'Site', value: 'site' },
-        { label: 'User', value: 'user' }
+        { label: 'Location', value: 'location' },
+        { label: 'Remarks (Text Only)', value: 'remarks' },
+        { label: 'Linear Scale (Custom)', value: 'linear' },
+        { label: 'Multiple Scoring', value: 'multiple_scoring' }
     ];
 
     constructor(
@@ -64,6 +77,7 @@ export class SurveyEditComponent implements OnInit {
         private messageService: MessageService,
         private surveyService: SurveyService,
         private departmentService: DepartmentService,
+        private auth: AuthService,
         private route: ActivatedRoute,
         private router: Router
     ) {
@@ -71,7 +85,7 @@ export class SurveyEditComponent implements OnInit {
     }
 
     ngOnInit(): void {
-        this.surveyId = +this.route.snapshot.paramMap.get('id')!;
+        this.surveyId = +(this.route.snapshot.paramMap.get('id') || 0);
         this.loadInitialData();
     }
 
@@ -81,7 +95,8 @@ export class SurveyEditComponent implements OnInit {
             description: [''],
             department: [null, Validators.required],
             survey_type: [null, Validators.required],
-            site_ids: [[], Validators.required],
+            // Bind by codes (string[])
+            site_codes: [[], Validators.required],
             is_location_based: [false],
             is_image_required: [false],
             is_active: [true],
@@ -90,94 +105,169 @@ export class SurveyEditComponent implements OnInit {
         });
     }
 
+    // Helpers
+    private cleanCode(v: string): string {
+        return String(v || '').trim().toUpperCase();
+    }
+
+    private async fetchSitesDirect(): Promise<any[]> {
+        const res = await fetch('https://api.shwapno.app/api/sites');
+        if (!res.ok) throw new Error(`Sites HTTP ${res.status}`);
+        const data = await res.json();
+        return data?.data || data || [];
+    }
+
     private loadInitialData(): void {
         this.isDataLoading = true;
 
-        // Load departments first
         this.departmentService.getAllDepartments().subscribe({
             next: (deptRes) => {
-                this.departments = deptRes.data || [];
+                this.departments = deptRes?.data || [];
 
-                // Then load survey types
                 this.surveyService.getAllSurveyTypes().subscribe({
-                    next: (surveyTypeRes) => {
-                        this.surveyTypes = surveyTypeRes.data || [];
+                    next: (stypeRes) => {
+                        this.surveyTypes = stypeRes?.data || [];
 
-                        // Then load sites
-                        this.surveyService.getAllSites().subscribe({
-                            next: (siteRes) => {
-                                this.sites = siteRes.data || [];
-
-                                // Finally load the survey data
+                        this.fetchSitesDirect()
+                            .then((sites) => {
+                                // normalize: id = number, site_code = UPPER CASE + TRIM
+                                this.sites = (sites || []).map((s: any) => ({
+                                    id: Number(s.id),
+                                    site_code: this.cleanCode(s.site_code),
+                                    name: s.name
+                                }));
                                 this.loadSurvey();
-                            },
-                            error: (siteErr) => {
-                                console.error('Failed to load sites:', siteErr);
+                            })
+                            .catch((err: any) => {
                                 this.isDataLoading = false;
-                            }
-                        });
+                                this.messageService.add({
+                                    severity: 'error',
+                                    summary: 'Error',
+                                    detail: 'Failed to load sites: ' + (err?.message || 'Unknown')
+                                });
+                            });
                     },
-                    error: (surveyTypeErr) => {
-                        console.error('Failed to load survey types:', surveyTypeErr);
+                    error: () => {
                         this.isDataLoading = false;
+                        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to load survey types' });
                     }
                 });
             },
-            error: (deptErr) => {
-                console.error('Failed to load departments:', deptErr);
+            error: () => {
                 this.isDataLoading = false;
+                this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to load departments' });
             }
         });
+    }
+
+    /** Return an array of normalized site CODES for the form control. */
+    /** Return an array of normalized site CODES for the form control. */
+    private normalizeSurveySiteCodes(survey: any): string[] {
+        const idToCode = new Map<number, string>(this.sites.map(s => [s.id, s.site_code]));
+
+        // Prefer the site_code field (might be codes OR mistakenly numeric ids)
+        if (survey.site_code) {
+            const rawTokens: string[] = String(survey.site_code)
+                .split(',')
+                .map((t: string) => t.trim())
+                .filter((t: string) => t.length > 0);
+
+            const allNumeric: boolean = rawTokens.every((t: string) => /^\d+$/.test(t));
+            if (allNumeric) {
+                // DB stored IDs in site_code; map id -> code
+                const mapped: string[] = rawTokens
+                    .map((t: string) => idToCode.get(Number(t)))
+                    .filter((c: string | undefined): c is string => typeof c === 'string' && c.length > 0)
+                    .map((c: string) => this.cleanCode(c));
+                return Array.from(new Set(mapped));
+            }
+
+            // Treat as codes
+            const cleaned: string[] = rawTokens.map((t: string) => this.cleanCode(t));
+            return Array.from(new Set(cleaned));
+        }
+
+        // Legacy fallbacks
+        if (Array.isArray(survey.site_ids) && survey.site_ids.length) {
+            const codes: string[] = survey.site_ids
+                .map((x: any) => idToCode.get(Number(x?.id ?? x)))
+                .filter((c: string | undefined): c is string => typeof c === 'string' && c.length > 0)
+                .map((c: string) => this.cleanCode(c));
+            return Array.from(new Set(codes));
+        }
+
+        if (Array.isArray(survey.sites) && survey.sites.length) {
+            const codes: string[] = survey.sites
+                .map((s: any) => idToCode.get(Number(s?.id ?? s?.site_id)))
+                .filter((c: string | undefined): c is string => typeof c === 'string' && c.length > 0)
+                .map((c: string) => this.cleanCode(c));
+            return Array.from(new Set(codes));
+        }
+
+        if (survey.site_id) {
+            const c = idToCode.get(Number(survey.site_id));
+            return c ? [this.cleanCode(c)] : [];
+        }
+
+        return [];
+    }
+
+    /** Make sure every preselected code exists as an option, even if missing from sites API. */
+    private ensureOptionsContain(codes: string[]): void {
+        const existing = new Set(this.sites.map(s => s.site_code));
+        const missing = codes.filter(c => !existing.has(c));
+        if (missing.length) {
+            // Create ephemeral options with negative ids
+            missing.forEach((code: string, idx: number) => {
+                this.sites.push({ id: -1000 - idx, site_code: code });
+            });
+        }
     }
 
     private loadSurvey(): void {
         this.surveyService.getSurveyById(this.surveyId).subscribe({
             next: (res) => {
-                const survey = res.data;
+                const survey = res?.data || res;
 
-                // Split the site_code (comma-separated string) into an array of site codes
-                const selectedSiteCodes = survey.site_code ? survey.site_code.split(',') : [];
-
-                // Now map site_codes into an array of objects for binding with multi-select
-                const selectedSites = this.sites.filter((site) => selectedSiteCodes.includes(site.site_code));
-
-                // Patch basic form values
                 this.surveyForm.patchValue({
                     title: survey.title,
                     description: survey.description,
-                    department: survey.department?.id || survey.department,
-                    survey_type: survey.survey_type?.id || survey.survey_type,
-                    site_ids: selectedSites.map((site) => site.id), // Use the 'id' for selected sites
-                    is_location_based: survey.is_location_based,
-                    is_image_required: survey.is_image_required,
-                    is_active: survey.is_active
+                    department: survey.department?.id ?? survey.department,
+                    survey_type: survey.survey_type?.id ?? survey.survey_type,
+                    is_location_based: !!survey.is_location_based,
+                    is_image_required: !!survey.is_image_required,
+                    is_active: !!survey.is_active
                 });
 
-                // Load questions into a default category
-                if (survey.questions && survey.questions.length > 0) {
-                    const defaultCategory = this.fb.group({
-                        name: ['General', Validators.required],
-                        questions: this.fb.array([])
-                    });
-                    this.categories.push(defaultCategory);
+                // Preselect by CODES
+                const selectedCodes: string[] = this.normalizeSurveySiteCodes(survey);
+                this.ensureOptionsContain(selectedCodes);
 
-                    survey.questions.forEach((q: any) => {
-                        this.addQuestionToCategory(0, q);
-                    });
-                }
+                // Set twice to help PrimeNG reflect initial selection reliably
+                this.surveyForm.get('site_codes')!.setValue(selectedCodes, { emitEvent: false });
+                setTimeout(() => {
+                    this.surveyForm.get('site_codes')!.setValue(selectedCodes, { emitEvent: false });
+                }, 0);
 
-                // Load targets
-                if (survey.targets) {
-                    survey.targets.forEach((t: any) => {
-                        const targetGroup = this.fb.group({
-                            target_type: t.target_type,
-                            role_name: t.role_name || '',
-                            department: t.department?.id || t.department || null,
-                            site_id: t.site_id?.id || t.site_id || null,
-                            user_id: t.user_id?.id || t.user_id || null
+                // Categories & questions
+                const hasCategories = Array.isArray(survey.categories) && survey.categories.length > 0;
+                if (hasCategories) {
+                    survey.categories.forEach((cat: any) => {
+                        const catGroup = this.fb.group({
+                            name: [cat.name || 'General', Validators.required],
+                            questions: this.fb.array([])
                         });
-                        this.targets.push(targetGroup);
+                        this.categories.push(catGroup);
+                        (cat.questions || []).forEach((q: any) =>
+                            this.addQuestionToCategory(this.categories.length - 1, q)
+                        );
                     });
+                } else if (Array.isArray(survey.questions) && survey.questions.length > 0) {
+                    const defCat = this.fb.group({ name: ['General', Validators.required], questions: this.fb.array([]) });
+                    this.categories.push(defCat);
+                    survey.questions.forEach((q: any) => this.addQuestionToCategory(0, q));
+                } else {
+                    this.addCategory();
                 }
 
                 this.isDataLoading = false;
@@ -187,240 +277,207 @@ export class SurveyEditComponent implements OnInit {
                 this.messageService.add({
                     severity: 'error',
                     summary: 'Error',
-                    detail: 'Failed to load survey: ' + (err.error?.message || 'Unknown error')
+                    detail: 'Failed to load survey: ' + (err?.error?.message || 'Unknown error')
                 });
-                this.router.navigate(['/survey']);
+                this.router.navigate(['/survey-list']);
             }
         });
     }
 
-    private addQuestionToCategory(catIdx: number, questionData: any): void {
-        const questionGroup = this.fb.group({
-            text: [questionData.text, Validators.required],
-            type: [questionData.type, Validators.required],
-            hasMarks: [questionData.has_marks || false],
-            marks: [questionData.marks || 0],
-            isRequired: [questionData.is_required !== false],
+    private addQuestionToCategory(catIdx: number, q: any): void {
+        const type = q.type;
+        const base = this.fb.group({
+            text: [q.text, Validators.required],
+            type: [type, Validators.required],
+            hasMarks: [!!q.has_marks],
+            marks: [q.marks ?? 0],
+            isRequired: [q.is_required !== false],
+            remarks: [q.remarks ?? ''],
             choices: this.fb.array([]),
             yesValue: [false],
-            noValue: [false]
+            noValue: [false],
+            min_value: [q.min_value ?? 0],
+            max_value: [q.max_value ?? 10]
         });
 
-        // Add choices for multiple choice questions
-        if (questionData.type === 'choice' && questionData.choices) {
-            questionData.choices.forEach((choice: any) => {
-                const choiceGroup = this.fb.group({
-                    text: [choice.text, Validators.required],
-                    isCorrect: [choice.is_correct || false]
-                });
-                (questionGroup.get('choices') as FormArray).push(choiceGroup);
+        if (type === 'choice') {
+            (q.choices || []).forEach((c: any) => {
+                this.getChoicesArray(base).push(
+                    this.fb.group({ text: [c.text, Validators.required], isCorrect: [!!c.is_correct], marks: [c.marks ?? 0] })
+                );
             });
-        }
-        // Set values for yes/no questions
-        else if (questionData.type === 'yesno' && questionData.choices) {
-            const yesChoice = questionData.choices.find((c: any) => c.text.toLowerCase() === 'yes');
-            const noChoice = questionData.choices.find((c: any) => c.text.toLowerCase() === 'no');
-            questionGroup.patchValue({
-                yesValue: yesChoice ? yesChoice.is_correct : false,
-                noValue: noChoice ? noChoice.is_correct : false
+        } else if (type === 'yesno') {
+            const yes = (q.choices || []).find((c: any) => String(c.text).toLowerCase() === 'yes');
+            const no  = (q.choices || []).find((c: any) => String(c.text).toLowerCase() === 'no');
+            base.patchValue({ yesValue: !!(yes && yes.is_correct), noValue: !!(no && no.is_correct) });
+        } else if (type === 'multiple_scoring') {
+            (q.choices || []).forEach((c: any) => {
+                this.getChoicesArray(base).push(this.fb.group({ text: [c.text, Validators.required], marks: [c.marks ?? 0] }));
             });
         }
 
-        this.getQuestions(catIdx).push(questionGroup);
+        this.getQuestions(catIdx).push(base);
     }
 
-    // Form array getters
-    get categories(): FormArray {
-        return this.surveyForm.get('categories') as FormArray;
+    // ---------- Form helpers ----------
+    get categories(): FormArray { return this.surveyForm.get('categories') as FormArray; }
+    getQuestions(catIdx: number): FormArray { return this.categories.at(catIdx).get('questions') as FormArray; }
+    getQuestionChoices(catIdx: number, qIdx: number): FormArray { return this.getQuestions(catIdx).at(qIdx).get('choices') as FormArray; }
+    getYesNoControl(catIdx: number, qIdx: number, which: 'yes' | 'no'): FormControl {
+        return this.getQuestions(catIdx).at(qIdx).get(`${which}Value`) as FormControl;
     }
+    private getChoicesArray(qGroup: FormGroup): FormArray { return qGroup.get('choices') as FormArray; }
 
-    get targets(): FormArray {
-        return this.surveyForm.get('targets') as FormArray;
-    }
-
-    getQuestions(catIdx: number): FormArray {
-        return this.categories.at(catIdx).get('questions') as FormArray;
-    }
-
-    getQuestionChoices(catIdx: number, qIdx: number): FormArray {
-        return this.getQuestions(catIdx).at(qIdx).get('choices') as FormArray;
-    }
-
-    getYesNoControl(catIdx: number, qIdx: number, type: 'yes' | 'no'): FormControl {
-        return this.getQuestions(catIdx).at(qIdx).get(`${type}Value`) as FormControl;
-    }
-
-    // Category methods
+    // ---------- Category ----------
     addCategory(): void {
-        const cat = this.fb.group({
-            name: ['', Validators.required],
-            questions: this.fb.array([])
-        });
-        this.categories.push(cat);
+        this.categories.push(this.fb.group({ name: ['', Validators.required], questions: this.fb.array([]) }));
     }
+    removeCategory(idx: number): void { this.categories.removeAt(idx); }
 
-    removeCategory(index: number): void {
-        this.categories.removeAt(index);
-    }
-
-    // Question methods
+    // ---------- Questions ----------
     addQuestion(catIdx: number): void {
-        const question = this.fb.group({
-            text: ['', Validators.required],
-            type: ['', Validators.required],
-            hasMarks: [false],
-            marks: [0],
-            isRequired: [true],
-            choices: this.fb.array([]),
-            yesValue: [false],
-            noValue: [false]
-        });
-        this.getQuestions(catIdx).push(question);
+        this.getQuestions(catIdx).push(
+            this.fb.group({
+                text: ['', Validators.required],
+                type: ['', Validators.required],
+                hasMarks: [false],
+                marks: [0],
+                isRequired: [true],
+                remarks: [''],
+                choices: this.fb.array([]),
+                yesValue: [false],
+                noValue: [false],
+                min_value: [0],
+                max_value: [10]
+            })
+        );
     }
-
-    removeQuestion(catIdx: number, qIdx: number): void {
-        this.getQuestions(catIdx).removeAt(qIdx);
-    }
-
+    removeQuestion(catIdx: number, qIdx: number): void { this.getQuestions(catIdx).removeAt(qIdx); }
     onQuestionTypeChange(catIdx: number, qIdx: number): void {
-        const question = this.getQuestions(catIdx).at(qIdx);
-        const choices = question.get('choices') as FormArray;
-        while (choices.length !== 0) choices.removeAt(0);
-        if (question.get('type')?.value === 'yesno') {
-            question.patchValue({ yesValue: false, noValue: false });
-        }
+        const q = this.getQuestions(catIdx).at(qIdx) as FormGroup;
+        const choices = q.get('choices') as FormArray;
+        while (choices.length) choices.removeAt(0);
+        if (q.get('type')?.value === 'multiple_scoring') this.addChoice(catIdx, qIdx);
+        if (q.get('type')?.value === 'yesno') q.patchValue({ yesValue: false, noValue: false });
+    }
+    onLinearMaxValueChange(catIdx: number, qIdx: number): void {
+        const q = this.getQuestions(catIdx).at(qIdx) as FormGroup;
+        const maxValue = Number(q.get('max_value')?.value);
+        if (!Number.isNaN(maxValue) && maxValue >= 0) q.patchValue({ marks: maxValue });
     }
 
-    // Choice methods
+    // ---------- Choices ----------
     addChoice(catIdx: number, qIdx: number): void {
-        const choice = this.fb.group({
-            text: ['', Validators.required],
-            isCorrect: [false]
-        });
-        this.getQuestionChoices(catIdx, qIdx).push(choice);
+        const q = this.getQuestions(catIdx).at(qIdx) as FormGroup;
+        const isMultipleScoring = q.get('type')?.value === 'multiple_scoring';
+        this.getQuestionChoices(catIdx, qIdx).push(
+            this.fb.group(
+                isMultipleScoring
+                    ? { text: ['', Validators.required], marks: [0] }
+                    : { text: ['', Validators.required], isCorrect: [false], marks: [0] }
+            )
+        );
     }
-
     removeChoice(catIdx: number, qIdx: number, cIdx: number): void {
         this.getQuestionChoices(catIdx, qIdx).removeAt(cIdx);
     }
 
-    // Target methods
-    addTarget(): void {
-        const target = this.fb.group({
-            target_type: [''],
-            role_name: [''],
-            department: [null],
-            site_id: [null],
-            user_id: [null]
-        });
-        this.targets.push(target);
-    }
-
-    removeTarget(index: number): void {
-        this.targets.removeAt(index);
-    }
-
-    // Form submission
-    onSubmit(): void {
+    // ---------- Submit (send ONLY site_code) ----------
+    async onSubmit(): Promise<void> {
         if (this.surveyForm.invalid) {
-            this.messageService.add({
-                severity: 'warn',
-                summary: 'Validation',
-                detail: 'Please fill all required fields'
-            });
+            this.messageService.add({ severity: 'warn', summary: 'Validation', detail: 'Please fill all required fields' });
             return;
         }
 
         this.isLoading = true;
-        const payload = this.prepareFormData();
+        const payload = this.prepareFormData(); // includes site_code only
 
-        this.surveyService.updateSurvey(this.surveyId, payload).subscribe({
-            next: () => {
-                this.isLoading = false;
+        try {
+            const url = `${survey_app.apiBaseUrl.replace(/\/+$/, '')}/survey/api/surveys/update/${this.surveyId}/`;
+            const token = this.auth.getToken();
 
-                // Add success toast notification
-                this.messageService.add({
-                    severity: 'success',
-                    summary: 'Success',
-                    detail: 'Survey updated successfully!',
-                    life: 3000 // Auto-hide after 3 seconds
-                });
+            const res = await fetch(url, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(token ? { Authorization: `Bearer ${token}` } : {})
+                },
+                body: JSON.stringify(payload)
+            });
 
-                // Delay navigation to ensure the toast is shown before redirecting
-                setTimeout(() => {
-                    this.router.navigate(['/survey']);
-                }, 3000); // Adjust time to match the toast display time
-            },
-            error: (err) => {
-                this.isLoading = false;
-                this.messageService.add({
-                    severity: 'error',
-                    summary: 'Error',
-                    detail: 'Failed to update survey: ' + (err.error?.message || 'Unknown error')
-                });
-            }
-        });
+            const body = await res.json().catch(() => ({}));
+            if (!res.ok) throw new Error(body?.message || `HTTP ${res.status}`);
+
+            this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Survey updated successfully!', life: 2500 });
+            this.isLoading = false;
+            setTimeout(() => this.router.navigate(['/survey-list']), 2500);
+        } catch (e: any) {
+            this.isLoading = false;
+            this.messageService.add({ severity: 'error', summary: 'Update failed', detail: e?.message || 'Unknown error' });
+        }
     }
 
-
+    /** Build payload using site CODES only */
     private prepareFormData(): any {
-        const formValue = this.surveyForm.value;
+        const v = this.surveyForm.value;
         const questions: QuestionPayload[] = [];
 
-        formValue.categories.forEach((cat: any) => {
-            cat.questions.forEach((q: any) => {
-                const question: QuestionPayload = {
+        (v.categories || []).forEach((cat: any) => {
+            (cat.questions || []).forEach((q: any) => {
+                const qp: QuestionPayload = {
                     text: q.text,
                     type: q.type,
                     has_marks: q.hasMarks,
                     marks: q.marks,
                     is_required: q.isRequired,
+                    remarks: q.remarks || '',
                     category: cat.name,
-                    choices: []
+                    choices: [],
+                    multiple_score: q.type === 'multiple_scoring'
                 };
 
                 if (q.type === 'choice') {
-                    question.choices = q.choices.map((c: any) => ({
+                    qp.choices = (q.choices || []).map((c: any) => ({
                         text: c.text,
-                        is_correct: c.isCorrect
+                        is_correct: !!c.isCorrect,
+                        marks: q.hasMarks ? Number(c.marks ?? 0) : undefined
                     }));
                 } else if (q.type === 'yesno') {
-                    question.choices = [
-                        { text: 'Yes', is_correct: q.yesValue },
-                        { text: 'No', is_correct: q.noValue }
+                    qp.choices = [
+                        { text: 'Yes', is_correct: q.yesValue === true, marks: q.hasMarks ? 0 : undefined },
+                        { text: 'No',  is_correct: q.noValue === true,  marks: q.hasMarks ? 0 : undefined }
                     ];
+                } else if (q.type === 'multiple_scoring') {
+                    qp.choices = (q.choices || []).map((c: any) => ({ text: c.text, marks: Number(c.marks ?? 0) }));
+                } else if (q.type === 'linear') {
+                    qp.min_value = Number(q.min_value ?? 0);
+                    qp.max_value = Number(q.max_value ?? 0);
                 }
 
-                questions.push(question);
+                questions.push(qp);
             });
         });
 
-        // Fix targets format to send only IDs
-        const fixedTargets = formValue.targets.map((target: any) => {
-            return {
-                target_type: target.target_type,
-                role_name: target.role_name,
-                department: target.department?.id || target.department,
-                site_id: target.site_id?.id || target.site_id,
-                user_id: target.user_id?.id || target.user_id
-            };
-        });
+        // Site CODES only (uppercased, unique, comma-separated)
+        const codesRaw: string[] = Array.isArray(v.site_codes) ? v.site_codes : [];
+        const codes = codesRaw.map((c: string) => this.cleanCode(c)).filter((c: string) => c.length > 0);
+        const site_code = Array.from(new Set(codes)).join(',');
 
         return {
-            title: formValue.title,
-            description: formValue.description,
-            department: formValue.department?.id || formValue.department,
-            survey_type: formValue.survey_type?.id || formValue.survey_type,
-            site_ids: formValue.site_ids?.map((site: any) => site.id || site) || [],
-            is_location_based: formValue.is_location_based,
-            is_image_required: formValue.is_image_required,
-            is_active: formValue.is_active,
-            questions: questions,
-            targets: fixedTargets
+            title: v.title,
+            description: v.description,
+            department: v.department?.id ?? v.department,
+            survey_type: v.survey_type?.id ?? v.survey_type,
+            site_code, // <-- ONLY codes sent to backend
+            is_location_based: v.is_location_based,
+            is_image_required: v.is_image_required,
+            is_active: v.is_active,
+            questions,
+            targets: v.targets || []
         };
     }
 
     onCancel(): void {
-        this.router.navigate(['/survey']);
+        this.router.navigate(['/survey-list']);
     }
 }
