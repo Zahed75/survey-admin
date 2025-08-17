@@ -1,117 +1,3 @@
-// import { Component, OnInit, inject } from '@angular/core';
-// import { CommonModule } from '@angular/common';
-// import { TableModule } from 'primeng/table';
-// import { ButtonModule } from 'primeng/button';
-// import { InputTextModule } from 'primeng/inputtext';
-// import { FormsModule } from '@angular/forms';
-// import { ReportsService } from '../../../services/reports/reports.service';
-//
-// @Component({
-//     selector: 'app-reports',
-//     standalone: true,
-//     imports: [
-//         CommonModule,
-//         TableModule,
-//         ButtonModule,
-//         InputTextModule,
-//         FormsModule,
-//     ],
-//     providers: [ReportsService],
-//     templateUrl: './reports.component.html',
-//     styleUrls: ['./reports.component.scss']
-// })
-// export class ReportsComponent implements OnInit {
-//     private reportsService = inject(ReportsService);
-//
-//     responses: any[] = [];
-//     expandedRows: { [key: number]: boolean } = {};
-//     loading = true;
-//
-//     ngOnInit(): void {
-//         this.fetchReports();
-//     }
-//
-//     fetchReports() {
-//         this.loading = true;
-//         this.reportsService.getSurveyReport().subscribe({
-//             next: (res) => {
-//                 this.responses = res.responses || [];
-//                 this.loading = false;
-//             },
-//             error: (err) => {
-//                 console.error('Failed to fetch reports:', err);
-//                 this.loading = false;
-//             }
-//         });
-//     }
-//
-//     onGlobalFilter(event: Event, dt: any) {
-//         const input = event.target as HTMLInputElement;
-//         dt.filterGlobal(input.value, 'contains');
-//     }
-//
-//     toggleExpandRow(responseId: number): void {
-//         this.expandedRows[responseId] = !this.expandedRows[responseId];
-//     }
-//
-//     isRowExpanded(responseId: number): boolean {
-//         return !!this.expandedRows[responseId];
-//     }
-//
-//     downloadCSV() {
-//         const csvRows: string[] = [];
-//         csvRows.push('Response ID,Submitted By,Survey Title,Submitted At,Category,Question,Answer,Obtained,Marks');
-//
-//         for (const res of this.responses) {
-//             const {
-//                 response_id,
-//                 submitted_by_user,
-//                 survey_title,
-//                 submitted_at,
-//                 categories
-//             } = res;
-//
-//             for (const category of categories) {
-//                 for (const question of category.questions) {
-//                     const row = [
-//                         response_id,
-//                         submitted_by_user,
-//                         `"${survey_title}"`,
-//                         submitted_at,
-//                         `"${category.name}"`,
-//                         `"${question.question_text}"`,
-//                         `"${question.selected_choice?.text || question.answer || ''}"`,
-//                         question.obtained ?? '',
-//                         question.marks ?? ''
-//                     ];
-//                     csvRows.push(row.join(','));
-//                 }
-//             }
-//         }
-//
-//         const csvContent = csvRows.join('\n');
-//         const blob = new Blob([csvContent], { type: 'text/csv' });
-//         const link = document.createElement('a');
-//         link.href = URL.createObjectURL(blob);
-//         link.download = 'survey_report.csv';
-//         link.click();
-//     }
-//     toggleRowExpansion(responseId: number): void {
-//         this.expandedRows[responseId] = !this.expandedRows[responseId];
-//     }
-//
-// }
-//
-//
-
-
-
-
-
-
-
-
-
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TableModule } from 'primeng/table';
@@ -119,6 +5,7 @@ import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { FormsModule } from '@angular/forms';
 import { ReportsService } from '../../../services/reports/reports.service';
+import { TooltipModule } from 'primeng/tooltip';
 
 @Component({
     selector: 'app-reports',
@@ -129,6 +16,7 @@ import { ReportsService } from '../../../services/reports/reports.service';
         ButtonModule,
         InputTextModule,
         FormsModule,
+        TooltipModule
     ],
     providers: [ReportsService],
     templateUrl: './reports.component.html',
@@ -138,8 +26,9 @@ export class ReportsComponent implements OnInit {
     private reportsService = inject(ReportsService);
 
     responses: any[] = [];
-    expandedRows: { [key: number]: boolean } = {}; // Store expanded rows
+    expandedRows: { [key: number]: boolean } = {};
     loading = true;
+    responsiveLayout: string = 'stack';
 
     ngOnInit(): void {
         this.fetchReports();
@@ -148,11 +37,11 @@ export class ReportsComponent implements OnInit {
     fetchReports() {
         this.loading = true;
         this.reportsService.getSurveyReport().subscribe({
-            next: (res) => {
+            next: (res: any) => {
                 this.responses = res.responses || [];
                 this.loading = false;
             },
-            error: (err) => {
+            error: (err: any) => {
                 console.error('Failed to fetch reports:', err);
                 this.loading = false;
             }
@@ -164,158 +53,172 @@ export class ReportsComponent implements OnInit {
         dt.filterGlobal(input.value, 'contains');
     }
 
-    // Toggle the expansion of the row when clicked
     toggleRowExpansion(responseId: number): void {
         this.expandedRows[responseId] = !this.expandedRows[responseId];
     }
 
-    // Check if a row is expanded
     isRowExpanded(responseId: number): boolean {
         return !!this.expandedRows[responseId];
     }
 
-    // All Type Report CSV Generation
-    generateAllTypeCSV() {
-        const csvRows: string[] = [];
-        csvRows.push('Response ID, Staff ID, User Name, Outlet Code, Submitted By, Survey Title, Submitted At, Category Id, Category Name, Question');
+    calculatePercentage(obtained: number, total: number): number {
+        if (!total || total === 0) return 0;
+        const percentage = (obtained / total) * 100;
+        // Ensure percentage is between 0-100
+        return Math.min(100, Math.max(0, Math.round(percentage * 100) / 100));
+    }
 
-        for (const res of this.responses) {
-            const {
-                response_id,
-                submitted_by_user,
-                survey_title,
-                submitted_at,
-                categories
-            } = res;
+    downloadCSV() {
+        // Prepare data for all three sheets
+        const allTypeReport = this.generateAllTypeReport();
+        const categoryWiseReport = this.generateCategoryWiseReport();
+        const surveyWiseReport = this.generateSurveyWiseReport();
 
-            // Check if categories is defined and is an array
-            if (Array.isArray(categories) && categories.length > 0) {
-                for (const category of categories) {
-                    for (const question of category.questions) {
-                        const row = [
-                            response_id,
-                            res.staff_id || '—',
-                            res.user_name || '—',
-                            res.site_code || '—',
-                            submitted_by_user,
-                            survey_title,
-                            submitted_at,
-                            category.id || '—',
-                            category.name || '—',
-                            question.question_text || '—'
-                        ];
-                        csvRows.push(row.join(','));
-                    }
+        // Create CSV content with multiple sheets
+        const csvContent = [
+            '=== All Type Report ===',
+            allTypeReport.header.join(','),
+            ...allTypeReport.rows.map((row) => row.join(',')),
+
+            '\n\n=== Category Wise Report ===',
+            categoryWiseReport.header.join(','),
+            ...categoryWiseReport.rows.map((row) => row.join(',')),
+
+            '\n\n=== Survey Wise Report ===',
+            surveyWiseReport.header.join(','),
+            ...surveyWiseReport.rows.map((row) => row.join(','))
+        ].join('\n');
+
+        // Download the CSV file
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'survey_report.csv';
+        link.click();
+    }
+
+    private generateAllTypeReport(): { header: string[]; rows: any[][] } {
+        const header = [
+            'Response ID',
+            'Staff ID',
+            'User Name',
+            'Phone Number',
+            'Designation',
+            'Outlet Code',
+            'Submitted By',
+            'Survey Id',
+            'Survey Title',
+            'Submitted At',
+            'Category Id',
+            'Category Name',
+            'Question Text',
+            'Answer',
+            'Selected Choice',
+            'Marks',
+            'Obtained Marks',
+            'Percentage'
+        ];
+
+        const rows = [];
+        for (const response of this.responses) {
+            for (const category of response.categories || []) {
+                for (const question of category.questions || []) {
+                    rows.push([
+                        response['Response ID'],
+                        response['Staff ID'],
+                        response['Name'],
+                        response['Phone Number'],
+                        response['Designation'],
+                        response['Outlet Code'],
+                        response['Submitted By'] || 'N/A',
+                        response['Survey Id'],
+                        response['Survey Name'],
+                        response['Submitted At'],
+                        category.id || 'N/A',
+                        category.name,
+                        question.question_text,
+                        question.answer || 'No answer',
+                        question.selected_choice?.text || 'N/A',
+                        question.marks || 0,
+                        question.obtained || 0,
+                        (question.percentage || 0) + '%'
+                    ]);
                 }
             }
         }
 
-        const csvContent = csvRows.join('\n');
-        const blob = new Blob([csvContent], { type: 'text/csv' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = 'all_type_report.csv';
-        link.click();
+        return { header, rows };
     }
 
-    // Category Wise Report CSV Generation
-    generateCategoryWiseCSV() {
-        const csvRows: string[] = [];
-        csvRows.push('Response ID, Staff ID, User Name, Outlet Code, Survey Id, Survey Name, Category 1, Category 2, Category 3');
+    private generateCategoryWiseReport(): { header: string[]; rows: any[][] } {
+        const header = ['Response ID', 'Staff ID', 'User Name', 'Outlet Code', 'Survey Id', 'Survey Name', ...this.getUniqueCategoryNames()];
 
-        for (const res of this.responses) {
-            const {
-                response_id,
-                submitted_by_user,
-                survey_title,
-                site_code,
-                categories
-            } = res;
+        const rows = [];
+        for (const response of this.responses) {
+            const row = [response['Response ID'], response['Staff ID'], response['Name'], response['Outlet Code'], response['Survey Id'], response['Survey Name']];
 
-            // Check if categories is defined and is an array
-            if (Array.isArray(categories) && categories.length > 0) {
-                const categoryNames = categories.map((cat: { name: string }) => cat.name).join(', ');
-                const row = [
-                    response_id,
-                    res.staff_id || '—',
-                    res.user_name || '—',
-                    site_code || '—',
-                    res.survey_id || '—',
-                    survey_title,
-                    ...categoryNames.split(',').map(cat => cat || '—')
-                ];
-                csvRows.push(row.join(','));
+            // Add category percentages
+            const categoryMap = new Map<string, number>();
+            for (const category of response.categories || []) {
+                categoryMap.set(category.name, category.percentage || 0);
+            }
+
+            for (const categoryName of this.getUniqueCategoryNames()) {
+                row.push(categoryMap.get(categoryName) || 0);
+            }
+
+            rows.push(row);
+        }
+
+        return { header, rows };
+    }
+
+    private generateSurveyWiseReport(): { header: string[]; rows: any[][] } {
+        const header = ['Response ID', 'Staff ID', 'User Name', 'Outlet Code', 'Survey Id', 'Survey Name', 'Total Questions', 'Total Answered', 'Total Marks', 'Obtained Marks', 'Result Percentage'];
+
+        const rows = [];
+        for (const response of this.responses) {
+            let totalQuestions = 0;
+            let totalAnswered = 0;
+            let totalMarks = 0;
+            let obtainedMarks = 0;
+
+            for (const category of response.categories || []) {
+                for (const question of category.questions || []) {
+                    totalQuestions++;
+                    totalMarks += question.marks || 0;
+                    obtainedMarks += question.obtained || 0;
+                    if (question.answer || question.selected_choice) {
+                        totalAnswered++;
+                    }
+                }
+            }
+
+            rows.push([
+                response['Response ID'],
+                response['Staff ID'],
+                response['Name'],
+                response['Outlet Code'],
+                response['Survey Id'],
+                response['Survey Name'],
+                totalQuestions,
+                totalAnswered,
+                totalMarks,
+                obtainedMarks,
+                totalMarks > 0 ? ((obtainedMarks / totalMarks) * 100).toFixed(2) + '%' : '0%'
+            ]);
+        }
+
+        return { header, rows };
+    }
+
+    private getUniqueCategoryNames(): string[] {
+        const categories = new Set<string>();
+        for (const response of this.responses) {
+            for (const category of response.categories || []) {
+                categories.add(category.name);
             }
         }
-
-        const csvContent = csvRows.join('\n');
-        const blob = new Blob([csvContent], { type: 'text/csv' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = 'category_wise_report.csv';
-        link.click();
-    }
-
-    // Survey Wise Report CSV Generation
-    generateSurveyWiseCSV() {
-        const csvRows: string[] = [];
-        csvRows.push('Response ID, Staff ID, User Name, Outlet Code, Survey Id, Survey Name, Total Questions, Total Answers, Total Marks, Obtained Marks, Result Percentage');
-
-        for (const res of this.responses) {
-            const {
-                response_id,
-                submitted_by_user,
-                survey_title,
-                site_code,
-                categories
-            } = res;
-
-            // Check if categories is defined and is an array
-            if (Array.isArray(categories) && categories.length > 0) {
-                const totalQuestions = categories.reduce((acc: any, cat: any) => acc + cat.questions.length, 0);
-                const totalAnswers = categories.reduce((acc: any, cat: any) => acc + cat.questions.filter((q: any) => q.answer).length, 0);
-                const totalMarks = categories.reduce((acc: any, cat: any) => acc + cat.total_marks, 0);
-                const obtainedMarks = categories.reduce((acc: any, cat: any) => acc + cat.obtained_marks, 0);
-                const percentage = totalMarks > 0 ? (obtainedMarks / totalMarks) * 100 : 0;
-
-                const row = [
-                    response_id,
-                    res.staff_id || '—',
-                    res.user_name || '—',
-                    site_code || '—',
-                    res.survey_id || '—',
-                    survey_title,
-                    totalQuestions,
-                    totalAnswers,
-                    totalMarks,
-                    obtainedMarks,
-                    percentage.toFixed(2) + '%'
-                ];
-                csvRows.push(row.join(','));
-            }
-        }
-
-        const csvContent = csvRows.join('\n');
-        const blob = new Blob([csvContent], { type: 'text/csv' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = 'survey_wise_report.csv';
-        link.click();
-    }
-
-    // General CSV Download Action
-    downloadCSV(reportType: string) {
-        if (reportType === 'all_type') {
-            this.generateAllTypeCSV();
-        } else if (reportType === 'category_wise') {
-            this.generateCategoryWiseCSV();
-        } else if (reportType === 'survey_wise') {
-            this.generateSurveyWiseCSV();
-        }
+        return Array.from(categories);
     }
 }
-
-
-
-
-

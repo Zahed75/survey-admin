@@ -1,206 +1,192 @@
-<!--<div class="p-4">-->
-<!--    <div class="flex justify-between items-center mb-4">-->
-<!--        <h2 class="text-xl font-semibold">Survey Reports</h2>-->
-<!--        <button-->
-<!--            (click)="downloadCSV()"-->
-<!--            pButton-->
-<!--            type="button"-->
-<!--            icon="pi pi-download"-->
-<!--            label="Download CSV"-->
-<!--            class="p-button-sm p-button-success"-->
-<!--        ></button>-->
-<!--    </div>-->
-
-<!--    <p-table-->
-<!--        #dt-->
-<!--        *ngIf="responses?.length"-->
-<!--        [value]="responses"-->
-<!--        dataKey="response_id"-->
-<!--        [paginator]="true"-->
-<!--        [rows]="5"-->
-<!--        [rowsPerPageOptions]="[5, 10, 25]"-->
-<!--        [loading]="loading"-->
-<!--        [globalFilterFields]="['submitted_by_user', 'survey_title']"-->
-<!--        [responsiveLayout]="'scroll'"-->
-<!--    >-->
-<!--        <ng-template pTemplate="caption">-->
-<!--            <div class="flex justify-end">-->
-<!--                <span class="p-input-icon-left">-->
-<!--                    <i class="pi pi-search"></i>-->
-<!--                    <input-->
-<!--                        pInputText-->
-<!--                        type="text"-->
-<!--                        placeholder="Search..."-->
-<!--                        (input)="onGlobalFilter($event, dt)"-->
-<!--                    />-->
-<!--                </span>-->
-<!--            </div>-->
-<!--        </ng-template>-->
-
-<!--        <ng-template pTemplate="header">-->
-<!--            <tr>-->
-<!--                <th>Response ID</th>-->
-<!--                <th>Submitted By</th>-->
-<!--                <th>Survey Title</th>-->
-<!--                <th>Submitted At</th>-->
-<!--                <th>Overall %</th>-->
-<!--            </tr>-->
-<!--        </ng-template>-->
-
-<!--        <ng-template pTemplate="body" let-response>-->
-<!--            <tr (click)="toggleRowExpansion(response.response_id)" class="cursor-pointer hover:bg-gray-100">-->
-<!--                <td>{{ response.response_id }}</td>-->
-<!--                <td>{{ response.submitted_by_user }}</td>-->
-<!--                <td class="text-blue-600 underline">{{ response.survey_title }}</td>-->
-<!--                <td>{{ response.submitted_at | date: 'short' }}</td>-->
-<!--                <td>{{ response.overall?.percentage ?? 0 }}%</td>-->
-<!--            </tr>-->
-
-<!--            <tr *ngIf="isRowExpanded(response.response_id)">-->
-<!--                <td colspan="5" class="bg-gray-50">-->
-<!--                    <div class="p-3">-->
-<!--                        <p class="text-sm mb-2 font-medium">-->
-<!--                            <span>Total Marks:</span> {{ response.overall?.total_marks || 0 }} |-->
-<!--                            <span>Obtained:</span> {{ response.overall?.obtained_marks || 0 }} |-->
-<!--                            <span>Percentage:</span> {{ response.overall?.percentage || 0 }}%-->
-<!--                        </p>-->
-<!--                        <div *ngFor="let cat of response.categories" class="mb-4">-->
-<!--                            <h4 class="font-semibold mb-2 text-sm">-->
-<!--                                Category: {{ cat.name }} ({{ cat.obtained_marks }}/{{ cat.total_marks }})-->
-<!--                            </h4>-->
-<!--                            <ul class="list-disc ml-5 text-sm">-->
-<!--                                <li *ngFor="let q of cat.questions" class="mb-1">-->
-<!--                                    <strong>{{ q.question_text }}:</strong>-->
-<!--                                    {{ q.selected_choice?.text || q.answer || '—' }}-->
-<!--                                    (Obtained: {{ q.obtained ?? 0 }}/{{ q.marks ?? 0 }})-->
-<!--                                </li>-->
-<!--                            </ul>-->
-<!--                        </div>-->
-<!--                    </div>-->
-<!--                </td>-->
-<!--            </tr>-->
-<!--        </ng-template>-->
-<!--    </p-table>-->
-
-<!--    <p *ngIf="!responses?.length && !loading" class="text-center text-gray-500 mt-10">-->
-<!--        No survey responses found.-->
-<!--    </p>-->
-<!--</div>-->
-
-
-
-
-
-
-
-
 <div class="p-4">
-    <div class="flex justify-between items-center mb-4">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
         <h2 class="text-xl font-semibold">Survey Reports</h2>
-        <div class="flex">
-            <button
-                (click)="downloadCSV('all_type')"
-                pButton
-                type="button"
-                icon="pi pi-download"
-                label="Download All Type Report"
-                class="p-button-sm p-button-success mr-2"
-            ></button>
-            <button
-                (click)="downloadCSV('category_wise')"
-                pButton
-                type="button"
-                icon="pi pi-download"
-                label="Download Category Wise Report"
-                class="p-button-sm p-button-success mr-2"
-            ></button>
-            <button
-                (click)="downloadCSV('survey_wise')"
-                pButton
-                type="button"
-                icon="pi pi-download"
-                label="Download Survey Wise Report"
-                class="p-button-sm p-button-success"
-            ></button>
-        </div>
+        <button
+            (click)="downloadCSV()"
+            pButton
+            type="button"
+            icon="pi pi-download"
+            label="Download Full Report"
+            class="p-button-sm p-button-success w-full sm:w-auto"
+        ></button>
     </div>
 
     <p-table
         #dt
         *ngIf="responses?.length"
         [value]="responses"
-        dataKey="response_id"
+        dataKey="Response ID"
         [paginator]="true"
-        [rows]="5"
-        [rowsPerPageOptions]="[5, 10, 25]"
+        [rows]="10"
+        [rowsPerPageOptions]="[5, 10, 25, 50]"
         [loading]="loading"
-        [globalFilterFields]="['submitted_by_user', 'survey_title']"
-        [responsiveLayout]="'scroll'"
+        [globalFilterFields]="['Name', 'Survey Name', 'Outlet Code']"
+        [responsiveLayout]="responsiveLayout"
     >
         <ng-template pTemplate="caption">
-            <div class="flex justify-end">
-                <span class="p-input-icon-left">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                <span class="p-input-icon-left w-full sm:w-80">
                     <i class="pi pi-search"></i>
                     <input
                         pInputText
                         type="text"
-                        placeholder="Search..."
+                        placeholder="Search by name, survey or outlet..."
                         (input)="onGlobalFilter($event, dt)"
+                        class="w-full"
                     />
+                </span>
+                <span class="text-sm text-gray-600 whitespace-nowrap">
+                    Total Responses: {{responses.length}}
                 </span>
             </div>
         </ng-template>
 
         <ng-template pTemplate="header">
             <tr>
-                <th>Response ID</th>
-                <th>Submitted By</th>
-                <th>Survey Title</th>
-                <th>Submitted At</th>
-                <th>Overall %</th>
+                <th class="min-w-[120px]">Staff</th>
+                <th class="min-w-[200px]">Survey</th>
+                <th class="min-w-[100px]">Outlet</th>
+                <th class="min-w-[150px]">Submitted</th>
+                <th class="min-w-[120px]">Score</th>
+                <th class="w-[40px]">Details</th>
             </tr>
         </ng-template>
 
         <ng-template pTemplate="body" let-response>
-            <tr (click)="toggleRowExpansion(response.response_id)" class="cursor-pointer hover:bg-gray-100">
-                <td>{{ response.response_id }}</td>
-                <td>{{ response.submitted_by_user }}</td>
-                <td class="text-blue-600 underline">{{ response.survey_title }}</td>
-                <td>{{ response.submitted_at | date: 'short' }}</td>
-                <td>{{ response.overall?.percentage ?? 0 }}%</td>
-            </tr>
-
-            <tr *ngIf="isRowExpanded(response.response_id)">
-                <td colspan="5" class="bg-gray-50">
-                    <div class="p-3">
-                        <p class="text-sm mb-2 font-medium">
-                            <span>Total Marks:</span> {{ response.overall?.total_marks || 0 }} |
-                            <span>Obtained:</span> {{ response.overall?.obtained_marks || 0 }} |
-                            <span>Percentage:</span> {{ response.overall?.percentage || 0 }}%
-                        </p>
-                        <div *ngFor="let cat of response.categories" class="mb-4">
-                            <h4 class="font-semibold mb-2 text-sm">
-                                Category: {{ cat.name }} ({{ cat.obtained_marks }}/{{ cat.total_marks }})
-                            </h4>
-                            <ul class="list-disc ml-5 text-sm">
-                                <li *ngFor="let q of cat.questions" class="mb-1">
-                                    <strong>{{ q.question_text }}:</strong>
-                                    {{ q.selected_choice?.text || q.answer || '—' }}
-                                    (Obtained: {{ q.obtained ?? 0 }}/{{ q.marks ?? 0 }})
-                                </li>
-                            </ul>
+            <tr>
+                <td>
+                    <div class="flex flex-col">
+                        <span class="font-medium truncate max-w-[120px]">{{ response.Name || 'Unknown' }}</span>
+                        <span class="text-xs text-gray-500">ID: {{ response['Staff ID'] || 'N/A' }}</span>
+                    </div>
+                </td>
+                <td>
+                    <div class="flex flex-col">
+                        <span class="font-medium truncate max-w-[200px]">{{ response['Survey Name'] }}</span>
+                        <span class="text-xs text-gray-500">ID: {{ response['Survey Id'] }}</span>
+                    </div>
+                </td>
+                <td>{{ response['Outlet Code'] || 'N/A' }}</td>
+                <td>{{ response['Submitted At'] | date:'mediumDate' }}</td>
+                <td>
+                    <div class="flex flex-col">
+                        <div class="flex items-center gap-2">
+                            <span class="font-medium whitespace-nowrap">
+                                {{ calculatePercentage(response.Overall['Obtained Marks'], response.Overall['Total Marks']) }}%
+                            </span>
+                            <div class="w-16 bg-gray-200 rounded-full h-2.5">
+                                <div class="bg-blue-600 h-2.5 rounded-full"
+                                     [style.width]="calculatePercentage(response.Overall['Obtained Marks'], response.Overall['Total Marks']) + '%'"></div>
+                            </div>
+                        </div>
+                        <div class="text-xs text-gray-500 whitespace-nowrap">
+                            {{ response.Overall['Obtained Marks'] || 0 }}/{{ response.Overall['Total Marks'] || 0 }}
                         </div>
                     </div>
+                </td>
+                <td>
+                    <button
+                        pButton
+                        icon="pi pi-eye"
+                        class="p-button-sm p-button-rounded p-button-text"
+                        (click)="toggleRowExpansion(response['Response ID'])"
+                        [pTooltip]="isRowExpanded(response['Response ID']) ? 'Hide details' : 'Show details'"
+                        tooltipPosition="top"
+                    ></button>
+                </td>
+            </tr>
+
+            <tr *ngIf="isRowExpanded(response['Response ID'])">
+                <td colspan="6" class="bg-gray-50 p-0">
+                    <div class="p-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div class="bg-white p-4 rounded shadow">
+                                <h4 class="font-semibold mb-2">Response Summary</h4>
+                                <div class="grid grid-cols-2 gap-2 text-sm">
+                                    <div class="text-gray-600">Submitted By:</div>
+                                    <div>{{ response.Name }} (ID: {{ response['Staff ID'] }})</div>
+
+                                    <div class="text-gray-600">Designation:</div>
+                                    <div>{{ response.Designation || 'N/A' }}</div>
+
+                                    <div class="text-gray-600">Outlet Code:</div>
+                                    <div>{{ response['Outlet Code'] }}</div>
+
+                                    <div class="text-gray-600">Phone:</div>
+                                    <div>{{ response['Phone Number'] }}</div>
+                                </div>
+                            </div>
+
+                            <div class="bg-white p-4 rounded shadow">
+                                <h4 class="font-semibold mb-2">Survey Summary</h4>
+                                <div class="grid grid-cols-2 gap-2 text-sm">
+                                    <div class="text-gray-600">Survey:</div>
+                                    <div>{{ response['Survey Name'] }} (ID: {{ response['Survey Id'] }})</div>
+
+                                    <div class="text-gray-600">Submitted At:</div>
+                                    <div>{{ response['Submitted At'] | date:'medium' }}</div>
+
+                                    <div class="text-gray-600">Total Score:</div>
+                                    <div>
+                                        {{ response.Overall['Obtained Marks'] }} / {{ response.Overall['Total Marks'] }}
+                                        ({{ response.Overall['Percentage'] | number:'1.0-2' }}%)
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h4 class="font-semibold mb-3">Category-wise Performance</h4>
+                        <div *ngFor="let category of response.categories" class="mb-6">
+                            <div class="flex justify-between items-center mb-2">
+                                <h5 class="font-medium">
+                                    {{ category.name }} -
+                                    {{ category.obtained_marks }}/{{ category.total_marks }}
+                                    ({{ (category.obtained_marks / category.total_marks * 100) | number:'1.0-2' }}%)
+                                </h5>
+                            </div>
+
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-sm">
+                                    <thead>
+                                    <tr class="bg-gray-100">
+                                        <th class="p-2 text-left">Question</th>
+                                        <th class="p-2 text-left">Answer</th>
+                                        <th class="p-2 text-center">Score</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <tr *ngFor="let question of category.questions" class="border-b">
+                                        <td class="p-2">{{ question.question_text }}</td>
+                                        <td class="p-2">
+                                            {{ question.selected_choice?.text || question.answer || 'No answer' }}
+                                        </td>
+                                        <td class="p-2 text-center">
+                                            {{ question.obtained || 0 }}/{{ question.marks || 0 }}
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div *ngIf="response.categories?.length === 0" class="text-center text-gray-500 py-4">
+                            No category data available for this response
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </ng-template>
+
+        <ng-template pTemplate="emptymessage">
+            <tr>
+                <td colspan="6" class="text-center py-4 text-gray-500">
+                    No survey responses found
                 </td>
             </tr>
         </ng-template>
     </p-table>
 
     <p *ngIf="!responses?.length && !loading" class="text-center text-gray-500 mt-10">
-        No survey responses found.
+        No survey responses available.
     </p>
 </div>
-
-
-
-
