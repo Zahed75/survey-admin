@@ -64,37 +64,42 @@ export class ReportsComponent implements OnInit {
     calculatePercentage(obtained: number, total: number): number {
         if (!total || total === 0) return 0;
         const percentage = (obtained / total) * 100;
-        // Ensure percentage is between 0-100
         return Math.min(100, Math.max(0, Math.round(percentage * 100) / 100));
     }
 
     downloadCSV() {
-        // Prepare data for all three sheets
+        // Prepare data for all three reports
         const allTypeReport = this.generateAllTypeReport();
         const categoryWiseReport = this.generateCategoryWiseReport();
         const surveyWiseReport = this.generateSurveyWiseReport();
 
-        // Create CSV content with multiple sheets
+        // Create CSV content with three sections
         const csvContent = [
-            '=== All Type Report ===',
+            '=== ALL TYPE REPORT ===',
             allTypeReport.header.join(','),
-            ...allTypeReport.rows.map((row) => row.join(',')),
+            ...allTypeReport.rows.map(row => row.join(',')),
 
-            '\n\n=== Category Wise Report ===',
+            '\n\n=== CATEGORY WISE REPORT ===',
             categoryWiseReport.header.join(','),
-            ...categoryWiseReport.rows.map((row) => row.join(',')),
+            ...categoryWiseReport.rows.map(row => row.join(',')),
 
-            '\n\n=== Survey Wise Report ===',
+            '\n\n=== SURVEY WISE REPORT ===',
             surveyWiseReport.header.join(','),
-            ...surveyWiseReport.rows.map((row) => row.join(','))
+            ...surveyWiseReport.rows.map(row => row.join(','))
         ].join('\n');
 
-        // Download the CSV file
-        const blob = new Blob([csvContent], { type: 'text/csv' });
+        // Create and download the CSV file
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = 'survey_report.csv';
+        const url = URL.createObjectURL(blob);
+
+        link.setAttribute('href', url);
+        link.setAttribute('download', 'survey_reports.csv');
+        link.style.visibility = 'hidden';
+
+        document.body.appendChild(link);
         link.click();
+        document.body.removeChild(link);
     }
 
     private generateAllTypeReport(): { header: string[]; rows: any[][] } {
@@ -102,18 +107,12 @@ export class ReportsComponent implements OnInit {
             'Response ID',
             'Staff ID',
             'User Name',
-            'Phone Number',
-            'Designation',
             'Outlet Code',
-            'Submitted By',
-            'Survey Id',
             'Survey Title',
             'Submitted At',
-            'Category Id',
             'Category Name',
-            'Question Text',
+            'Question',
             'Answer',
-            'Selected Choice',
             'Marks',
             'Obtained Marks',
             'Percentage'
@@ -127,18 +126,12 @@ export class ReportsComponent implements OnInit {
                         response['Response ID'],
                         response['Staff ID'],
                         response['Name'],
-                        response['Phone Number'],
-                        response['Designation'],
                         response['Outlet Code'],
-                        response['Submitted By'] || 'N/A',
-                        response['Survey Id'],
                         response['Survey Name'],
                         response['Submitted At'],
-                        category.id || 'N/A',
                         category.name,
                         question.question_text,
-                        question.answer || 'No answer',
-                        question.selected_choice?.text || 'N/A',
+                        question.selected_choice?.text || question.answer || 'No answer',
                         question.marks || 0,
                         question.obtained || 0,
                         (question.percentage || 0) + '%'
@@ -146,18 +139,29 @@ export class ReportsComponent implements OnInit {
                 }
             }
         }
-
         return { header, rows };
     }
 
     private generateCategoryWiseReport(): { header: string[]; rows: any[][] } {
-        const header = ['Response ID', 'Staff ID', 'User Name', 'Outlet Code', 'Survey Id', 'Survey Name', ...this.getUniqueCategoryNames()];
+        const header = [
+            'Response ID',
+            'Staff ID',
+            'User Name',
+            'Outlet Code',
+            'Survey Title',
+            ...this.getUniqueCategoryNames()
+        ];
 
         const rows = [];
         for (const response of this.responses) {
-            const row = [response['Response ID'], response['Staff ID'], response['Name'], response['Outlet Code'], response['Survey Id'], response['Survey Name']];
+            const row = [
+                response['Response ID'],
+                response['Staff ID'],
+                response['Name'],
+                response['Outlet Code'],
+                response['Survey Name']
+            ];
 
-            // Add category percentages
             const categoryMap = new Map<string, number>();
             for (const category of response.categories || []) {
                 categoryMap.set(category.name, category.percentage || 0);
@@ -169,12 +173,22 @@ export class ReportsComponent implements OnInit {
 
             rows.push(row);
         }
-
         return { header, rows };
     }
 
     private generateSurveyWiseReport(): { header: string[]; rows: any[][] } {
-        const header = ['Response ID', 'Staff ID', 'User Name', 'Outlet Code', 'Survey Id', 'Survey Name', 'Total Questions', 'Total Answered', 'Total Marks', 'Obtained Marks', 'Result Percentage'];
+        const header = [
+            'Response ID',
+            'Staff ID',
+            'User Name',
+            'Outlet Code',
+            'Survey Title',
+            'Total Questions',
+            'Total Answered',
+            'Total Marks',
+            'Obtained Marks',
+            'Percentage'
+        ];
 
         const rows = [];
         for (const response of this.responses) {
@@ -199,7 +213,6 @@ export class ReportsComponent implements OnInit {
                 response['Staff ID'],
                 response['Name'],
                 response['Outlet Code'],
-                response['Survey Id'],
                 response['Survey Name'],
                 totalQuestions,
                 totalAnswered,
@@ -208,7 +221,6 @@ export class ReportsComponent implements OnInit {
                 totalMarks > 0 ? ((obtainedMarks / totalMarks) * 100).toFixed(2) + '%' : '0%'
             ]);
         }
-
         return { header, rows };
     }
 

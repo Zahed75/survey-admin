@@ -6,8 +6,9 @@
             pButton
             type="button"
             icon="pi pi-download"
-            label="Download Full Report"
+            label="Download Full Report (3 Tabs)"
             class="p-button-sm p-button-success w-full sm:w-auto"
+            [disabled]="loading || !responses.length"
         ></button>
     </div>
 
@@ -36,19 +37,19 @@
                     />
                 </span>
                 <span class="text-sm text-gray-600 whitespace-nowrap">
-                    Total Responses: {{responses.length}}
+                    Showing {{responses.length}} response(s)
                 </span>
             </div>
         </ng-template>
 
         <ng-template pTemplate="header">
             <tr>
-                <th class="min-w-[120px]">Staff</th>
-                <th class="min-w-[200px]">Survey</th>
-                <th class="min-w-[100px]">Outlet</th>
-                <th class="min-w-[150px]">Submitted</th>
-                <th class="min-w-[120px]">Score</th>
-                <th class="w-[40px]">Details</th>
+                <th pSortableColumn="Name">Staff <p-sortIcon field="Name"></p-sortIcon></th>
+                <th pSortableColumn="Survey Name">Survey <p-sortIcon field="Survey Name"></p-sortIcon></th>
+                <th pSortableColumn="Outlet Code">Outlet <p-sortIcon field="Outlet Code"></p-sortIcon></th>
+                <th pSortableColumn="Submitted At">Submitted <p-sortIcon field="Submitted At"></p-sortIcon></th>
+                <th pSortableColumn="Overall.Percentage">Score <p-sortIcon field="Overall.Percentage"></p-sortIcon></th>
+                <th style="width: 60px">Details</th>
             </tr>
         </ng-template>
 
@@ -56,35 +57,33 @@
             <tr>
                 <td>
                     <div class="flex flex-col">
-                        <span class="font-medium truncate max-w-[120px]">{{ response.Name || 'Unknown' }}</span>
+                        <span class="font-medium">{{ response.Name || 'Unknown' }}</span>
                         <span class="text-xs text-gray-500">ID: {{ response['Staff ID'] || 'N/A' }}</span>
                     </div>
                 </td>
                 <td>
                     <div class="flex flex-col">
-                        <span class="font-medium truncate max-w-[200px]">{{ response['Survey Name'] }}</span>
+                        <span class="font-medium">{{ response['Survey Name'] }}</span>
                         <span class="text-xs text-gray-500">ID: {{ response['Survey Id'] }}</span>
                     </div>
                 </td>
                 <td>{{ response['Outlet Code'] || 'N/A' }}</td>
-                <td>{{ response['Submitted At'] | date:'mediumDate' }}</td>
+                <td>{{ response['Submitted At'] | date:'medium' }}</td>
                 <td>
-                    <div class="flex flex-col">
-                        <div class="flex items-center gap-2">
-                            <span class="font-medium whitespace-nowrap">
-                                {{ calculatePercentage(response.Overall['Obtained Marks'], response.Overall['Total Marks']) }}%
-                            </span>
-                            <div class="w-16 bg-gray-200 rounded-full h-2.5">
-                                <div class="bg-blue-600 h-2.5 rounded-full"
-                                     [style.width]="calculatePercentage(response.Overall['Obtained Marks'], response.Overall['Total Marks']) + '%'"></div>
-                            </div>
-                        </div>
-                        <div class="text-xs text-gray-500 whitespace-nowrap">
-                            {{ response.Overall['Obtained Marks'] || 0 }}/{{ response.Overall['Total Marks'] || 0 }}
+                    <div class="flex items-center gap-2">
+                        <span class="font-medium whitespace-nowrap">
+                            {{ calculatePercentage(response.Overall['Obtained Marks'], response.Overall['Total Marks']) }}%
+                        </span>
+                        <div class="w-16 bg-gray-200 rounded-full h-2.5">
+                            <div class="bg-blue-600 h-2.5 rounded-full"
+                                 [style.width]="calculatePercentage(response.Overall['Obtained Marks'], response.Overall['Total Marks']) + '%'"></div>
                         </div>
                     </div>
+                    <div class="text-xs text-gray-500">
+                        {{ response.Overall['Obtained Marks'] || 0 }}/{{ response.Overall['Total Marks'] || 0 }}
+                    </div>
                 </td>
-                <td>
+                <td class="text-center">
                     <button
                         pButton
                         icon="pi pi-eye"
