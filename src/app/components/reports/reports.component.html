@@ -1,14 +1,128 @@
+<!--<div class="p-4">-->
+<!--    <div class="flex justify-between items-center mb-4">-->
+<!--        <h2 class="text-xl font-semibold">Survey Reports</h2>-->
+<!--        <button-->
+<!--            (click)="downloadCSV()"-->
+<!--            pButton-->
+<!--            type="button"-->
+<!--            icon="pi pi-download"-->
+<!--            label="Download CSV"-->
+<!--            class="p-button-sm p-button-success"-->
+<!--        ></button>-->
+<!--    </div>-->
+
+<!--    <p-table-->
+<!--        #dt-->
+<!--        *ngIf="responses?.length"-->
+<!--        [value]="responses"-->
+<!--        dataKey="response_id"-->
+<!--        [paginator]="true"-->
+<!--        [rows]="5"-->
+<!--        [rowsPerPageOptions]="[5, 10, 25]"-->
+<!--        [loading]="loading"-->
+<!--        [globalFilterFields]="['submitted_by_user', 'survey_title']"-->
+<!--        [responsiveLayout]="'scroll'"-->
+<!--    >-->
+<!--        <ng-template pTemplate="caption">-->
+<!--            <div class="flex justify-end">-->
+<!--                <span class="p-input-icon-left">-->
+<!--                    <i class="pi pi-search"></i>-->
+<!--                    <input-->
+<!--                        pInputText-->
+<!--                        type="text"-->
+<!--                        placeholder="Search..."-->
+<!--                        (input)="onGlobalFilter($event, dt)"-->
+<!--                    />-->
+<!--                </span>-->
+<!--            </div>-->
+<!--        </ng-template>-->
+
+<!--        <ng-template pTemplate="header">-->
+<!--            <tr>-->
+<!--                <th>Response ID</th>-->
+<!--                <th>Submitted By</th>-->
+<!--                <th>Survey Title</th>-->
+<!--                <th>Submitted At</th>-->
+<!--                <th>Overall %</th>-->
+<!--            </tr>-->
+<!--        </ng-template>-->
+
+<!--        <ng-template pTemplate="body" let-response>-->
+<!--            <tr (click)="toggleRowExpansion(response.response_id)" class="cursor-pointer hover:bg-gray-100">-->
+<!--                <td>{{ response.response_id }}</td>-->
+<!--                <td>{{ response.submitted_by_user }}</td>-->
+<!--                <td class="text-blue-600 underline">{{ response.survey_title }}</td>-->
+<!--                <td>{{ response.submitted_at | date: 'short' }}</td>-->
+<!--                <td>{{ response.overall?.percentage ?? 0 }}%</td>-->
+<!--            </tr>-->
+
+<!--            <tr *ngIf="isRowExpanded(response.response_id)">-->
+<!--                <td colspan="5" class="bg-gray-50">-->
+<!--                    <div class="p-3">-->
+<!--                        <p class="text-sm mb-2 font-medium">-->
+<!--                            <span>Total Marks:</span> {{ response.overall?.total_marks || 0 }} |-->
+<!--                            <span>Obtained:</span> {{ response.overall?.obtained_marks || 0 }} |-->
+<!--                            <span>Percentage:</span> {{ response.overall?.percentage || 0 }}%-->
+<!--                        </p>-->
+<!--                        <div *ngFor="let cat of response.categories" class="mb-4">-->
+<!--                            <h4 class="font-semibold mb-2 text-sm">-->
+<!--                                Category: {{ cat.name }} ({{ cat.obtained_marks }}/{{ cat.total_marks }})-->
+<!--                            </h4>-->
+<!--                            <ul class="list-disc ml-5 text-sm">-->
+<!--                                <li *ngFor="let q of cat.questions" class="mb-1">-->
+<!--                                    <strong>{{ q.question_text }}:</strong>-->
+<!--                                    {{ q.selected_choice?.text || q.answer || '—' }}-->
+<!--                                    (Obtained: {{ q.obtained ?? 0 }}/{{ q.marks ?? 0 }})-->
+<!--                                </li>-->
+<!--                            </ul>-->
+<!--                        </div>-->
+<!--                    </div>-->
+<!--                </td>-->
+<!--            </tr>-->
+<!--        </ng-template>-->
+<!--    </p-table>-->
+
+<!--    <p *ngIf="!responses?.length && !loading" class="text-center text-gray-500 mt-10">-->
+<!--        No survey responses found.-->
+<!--    </p>-->
+<!--</div>-->
+
+
+
+
+
+
+
+
 <div class="p-4">
     <div class="flex justify-between items-center mb-4">
         <h2 class="text-xl font-semibold">Survey Reports</h2>
-        <button
-            (click)="downloadCSV()"
-            pButton
-            type="button"
-            icon="pi pi-download"
-            label="Download CSV"
-            class="p-button-sm p-button-success"
-        ></button>
+        <div class="flex">
+            <button
+                (click)="downloadCSV('all_type')"
+                pButton
+                type="button"
+                icon="pi pi-download"
+                label="Download All Type Report"
+                class="p-button-sm p-button-success mr-2"
+            ></button>
+            <button
+                (click)="downloadCSV('category_wise')"
+                pButton
+                type="button"
+                icon="pi pi-download"
+                label="Download Category Wise Report"
+                class="p-button-sm p-button-success mr-2"
+            ></button>
+            <button
+                (click)="downloadCSV('survey_wise')"
+                pButton
+                type="button"
+                icon="pi pi-download"
+                label="Download Survey Wise Report"
+                class="p-button-sm p-button-success"
+            ></button>
+        </div>
     </div>
 
     <p-table
@@ -86,3 +200,7 @@
         No survey responses found.
     </p>
 </div>
+
+
+
+
