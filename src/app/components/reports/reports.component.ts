@@ -84,132 +84,132 @@ export class ReportsComponent implements OnInit {
     }
 
     downloadCSV() {
-        // Create CSV content with three tabs/sections
-        const csvContent = this.generateCSVContent();
-        
-        // Create and download the CSV file
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        const url = URL.createObjectURL(blob);
+    // Create CSV content with three tabs/sections
+    const csvContent = this.generateCSVContent();
+    
+    // Create and download the CSV file
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
 
-        link.setAttribute('href', url);
-        link.setAttribute('download', 'survey_reports.csv');
-        link.style.visibility = 'hidden';
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'survey_reports.csv');
+    link.style.visibility = 'hidden';
 
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    }
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
 
-    private generateCSVContent(): string {
-        // Tab 1: All Type Report
-        const allTypeCSV = this.generateAllTypeCSV();
-        
-        // Tab 2: Category Wise Report
-        const categoryWiseCSV = this.generateCategoryWiseCSV();
-        
-        // Tab 3: Survey Wise Report
-        const surveyWiseCSV = this.generateSurveyWiseCSV();
-        
-        // Combine all with sheet names (Excel will interpret these as tabs)
-        return [
-            '=== ALL TYPE REPORT ===',
-            allTypeCSV.header.join(','),
-            ...allTypeCSV.rows.map(row => row.join(',')),
+private generateCSVContent(): string {
+    // Tab 1: All Type Report
+    const allTypeCSV = this.generateAllTypeCSV();
+    
+    // Tab 2: Category Wise Report
+    const categoryWiseCSV = this.generateCategoryWiseCSV();
+    
+    // Tab 3: Survey Wise Report
+    const surveyWiseCSV = this.generateSurveyWiseCSV();
+    
+    // Combine all with sheet names (Excel will interpret these as tabs)
+    return [
+        '=== ALL TYPE REPORT ===',
+        allTypeCSV.header.join(','),
+        ...allTypeCSV.rows.map(row => row.join(',')),
 
-            '\n\n=== CATEGORY WISE REPORT ===',
-            categoryWiseCSV.header.join(','),
-            ...categoryWiseCSV.rows.map(row => row.join(',')),
+        '\n\n=== CATEGORY WISE REPORT ===',
+        categoryWiseCSV.header.join(','),
+        ...categoryWiseCSV.rows.map(row => row.join(',')),
 
-            '\n\n=== SURVEY WISE REPORT ===',
-            surveyWiseCSV.header.join(','),
-            ...surveyWiseCSV.rows.map(row => row.join(','))
-        ].join('\n');
-    }
+        '\n\n=== SURVEY WISE REPORT ===',
+        surveyWiseCSV.header.join(','),
+        ...surveyWiseCSV.rows.map(row => row.join(','))
+    ].join('\n');
+}
 
-    private generateAllTypeCSV(): { header: string[]; rows: any[][] } {
-        const header = [
-            'Response ID',
-            'StaffId',
-            'User Name',
-            'User Phone',
-            'Site_code',
-            'Survey Title',
-            'Category Name',
-            'Question',
-            'Total score',
-            'Question Has Marks',
-            'Marks obtained'
-        ];
+private generateAllTypeCSV(): { header: string[]; rows: any[][] } {
+    const header = [
+        'Response ID',
+        'StaffId',
+        'User Name',
+        'User Phone',
+        'Site_code',
+        'Survey Title',
+        'Category Name',
+        'Question',
+        'Total score',
+        'Question Has Marks',
+        'Marks obtained'
+    ];
 
-        const rows = this.allTypeData.map(item => [
-            item['Response ID'],
-            item['StaffId'],
-            item['User Name'],
-            item['User Phone'],
-            item['Site_code'],
-            item['Survey Title'],
-            item['Category Name'],
-            item['Question'],
-            item['Total score'],
-            item['Question Has Marks'] ? 'Yes' : 'No',
-            item['Marks obtained']
-        ]);
+    const rows = this.allTypeData.map(item => [
+        item['Response ID'],
+        item['StaffId'],
+        item['User Name'],
+        item['User Phone'],
+        item['Site_code'],
+        item['Survey Title'],
+        item['Category Name'],
+        item['Question'],
+        item['Total score'],
+        item['Question Has Marks'] ? 'Yes' : 'No',
+        item['Marks obtained']
+    ]);
 
-        return { header, rows };
-    }
+    return { header, rows };
+}
 
-    private generateCategoryWiseCSV(): { header: string[]; rows: any[][] } {
-        const header = [
-            'Survey Name',
-            'Category Name',
-            'User Name',
-            'User Phone',
-            'Total Marks',
-            'Obtained Marks',
-            'Question Category Score Percentage'
-        ];
+private generateCategoryWiseCSV(): { header: string[]; rows: any[][] } {
+    const header = [
+        'Survey Name',
+        'Category Name',
+        'User Name',
+        'User Phone',
+        'Total Marks',
+        'Obtained Marks',
+        'Question Category Score Percentage'
+    ];
 
-        const rows = this.categoryWiseData.map(item => [
-            item['Survey Name'],
-            item['Category Name'],
-            item['User Name'],
-            item['User Phone'],
-            item['Total Marks'],
-            item['Obtained Marks'],
-            item['Question Category Score Percentage']
-        ]);
+    const rows = this.categoryWiseData.map(item => [
+        item['Survey Name'],
+        item['Category Name'],
+        item['User Name'],
+        item['User Phone'],
+        item['Total Marks'],
+        item['Obtained Marks'],
+        item['Question Category Score Percentage']
+    ]);
 
-        return { header, rows };
-    }
+    return { header, rows };
+}
 
-    private generateSurveyWiseCSV(): { header: string[]; rows: any[][] } {
-        const header = [
-            'Survey Name',
-            'User Name',
-            'User Phone',
-            'Survey Id',
-            'Site_Code',
-            'Total Question',
-            'Total Answer',
-            'Total Marks',
-            'Obtained Marks',
-            'Result Percentage'
-        ];
+private generateSurveyWiseCSV(): { header: string[]; rows: any[][] } {
+    const header = [
+        'Survey Name',
+        'User Name',
+        'User Phone',
+        'Survey Id',
+        'Site_Code',
+        'Total Question',
+        'Total Answer',
+        'Total Marks',
+        'Obtained Marks',
+        'Result Percentage'
+    ];
 
-        const rows = this.surveyWiseData.map(item => [
-            item['Survey Name'],
-            item['User Name'],
-            item['User Phone'],
-            item['Survey Id'],
-            item['Site_Code'],
-            item['Total Question'],
-            item['Total Answer'],
-            item['Total Marks'],
-            item['Obtained Marks'],
-            item['Result Percentage']
-        ]);
+    const rows = this.surveyWiseData.map(item => [
+        item['Survey Name'],
+        item['User Name'],
+        item['User Phone'],
+        item['Survey Id'],
+        item['Site_Code'],
+        item['Total Question'],
+        item['Total Answer'],
+        item['Total Marks'],
+        item['Obtained Marks'],
+        item['Result Percentage']
+    ]);
 
-        return { header, rows };
-    }
+    return { header, rows };
+}
 }
