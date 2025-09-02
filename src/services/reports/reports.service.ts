@@ -16,7 +16,7 @@ export class ReportsService {
     //     return this.http.get(`${this.baseUrl}/survey/api/survey_csv_report/`);
     // }
 
-    // New method for the 3-type report
+      // New method for the 3-type report
     getSurveyReportByType(reportType: string = 'all'): Observable<any> {
         const params = new HttpParams().set('type', reportType);
         return this.http.get(`${this.baseUrl}/survey/api/survey-report/`, { params });

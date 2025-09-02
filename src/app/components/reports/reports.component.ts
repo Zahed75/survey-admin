@@ -1,3 +1,7 @@
+
+
+
+
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TableModule } from 'primeng/table';
@@ -7,6 +11,7 @@ import { FormsModule } from '@angular/forms';
 import { ReportsService } from '../../../services/reports/reports.service';
 import { TooltipModule } from 'primeng/tooltip';
 import { TabViewModule } from 'primeng/tabview';
+import * as XLSX from 'xlsx';
 
 @Component({
     selector: 'app-reports',
@@ -83,133 +88,78 @@ export class ReportsComponent implements OnInit {
         }
     }
 
-    downloadCSV() {
-    // Create CSV content with three tabs/sections
-    const csvContent = this.generateCSVContent();
-    
-    // Create and download the CSV file
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
+    downloadExcel() {
+        // Check if all data is loaded
+        if (!this.allTypeData.length || !this.categoryWiseData.length || !this.surveyWiseData.length) {
+            console.warn('Some report data is not loaded yet. Please wait for all reports to load.');
+            alert('Please wait for all reports to load before downloading.');
+            return;
+        }
+        
+        // Create workbook
+        const workbook = XLSX.utils.book_new();
+        
+        // Add All Type Report sheet
+        const allTypeWS = XLSX.utils.json_to_sheet(this.prepareDataForExcel(this.allTypeData, 'all'));
+        XLSX.utils.book_append_sheet(workbook, allTypeWS, 'All Type Report');
+        
+        // Add Category Wise Report sheet
+        const categoryWS = XLSX.utils.json_to_sheet(this.prepareDataForExcel(this.categoryWiseData, 'category'));
+        XLSX.utils.book_append_sheet(workbook, categoryWS, 'Category Wise Report');
+        
+        // Add Survey Wise Report sheet
+        const surveyWS = XLSX.utils.json_to_sheet(this.prepareDataForExcel(this.surveyWiseData, 'survey'));
+        XLSX.utils.book_append_sheet(workbook, surveyWS, 'Survey Wise Report');
+        
+        // Generate and download Excel file
+        XLSX.writeFile(workbook, 'survey_reports.xlsx');
+    }
 
-    link.setAttribute('href', url);
-    link.setAttribute('download', 'survey_reports.csv');
-    link.style.visibility = 'hidden';
-
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-}
-
-private generateCSVContent(): string {
-    // Tab 1: All Type Report
-    const allTypeCSV = this.generateAllTypeCSV();
-    
-    // Tab 2: Category Wise Report
-    const categoryWiseCSV = this.generateCategoryWiseCSV();
-    
-    // Tab 3: Survey Wise Report
-    const surveyWiseCSV = this.generateSurveyWiseCSV();
-    
-    // Combine all with sheet names (Excel will interpret these as tabs)
-    return [
-        '=== ALL TYPE REPORT ===',
-        allTypeCSV.header.join(','),
-        ...allTypeCSV.rows.map(row => row.join(',')),
-
-        '\n\n=== CATEGORY WISE REPORT ===',
-        categoryWiseCSV.header.join(','),
-        ...categoryWiseCSV.rows.map(row => row.join(',')),
-
-        '\n\n=== SURVEY WISE REPORT ===',
-        surveyWiseCSV.header.join(','),
-        ...surveyWiseCSV.rows.map(row => row.join(','))
-    ].join('\n');
-}
-
-private generateAllTypeCSV(): { header: string[]; rows: any[][] } {
-    const header = [
-        'Response ID',
-        'StaffId',
-        'User Name',
-        'User Phone',
-        'Site_code',
-        'Survey Title',
-        'Category Name',
-        'Question',
-        'Total score',
-        'Question Has Marks',
-        'Marks obtained'
-    ];
-
-    const rows = this.allTypeData.map(item => [
-        item['Response ID'],
-        item['StaffId'],
-        item['User Name'],
-        item['User Phone'],
-        item['Site_code'],
-        item['Survey Title'],
-        item['Category Name'],
-        item['Question'],
-        item['Total score'],
-        item['Question Has Marks'] ? 'Yes' : 'No',
-        item['Marks obtained']
-    ]);
-
-    return { header, rows };
-}
-
-private generateCategoryWiseCSV(): { header: string[]; rows: any[][] } {
-    const header = [
-        'Survey Name',
-        'Category Name',
-        'User Name',
-        'User Phone',
-        'Total Marks',
-        'Obtained Marks',
-        'Question Category Score Percentage'
-    ];
-
-    const rows = this.categoryWiseData.map(item => [
-        item['Survey Name'],
-        item['Category Name'],
-        item['User Name'],
-        item['User Phone'],
-        item['Total Marks'],
-        item['Obtained Marks'],
-        item['Question Category Score Percentage']
-    ]);
-
-    return { header, rows };
-}
-
-private generateSurveyWiseCSV(): { header: string[]; rows: any[][] } {
-    const header = [
-        'Survey Name',
-        'User Name',
-        'User Phone',
-        'Survey Id',
-        'Site_Code',
-        'Total Question',
-        'Total Answer',
-        'Total Marks',
-        'Obtained Marks',
-        'Result Percentage'
-    ];
-
-    const rows = this.surveyWiseData.map(item => [
-        item['Survey Name'],
-        item['User Name'],
-        item['User Phone'],
-        item['Survey Id'],
-        item['Site_Code'],
-        item['Total Question'],
-        item['Total Answer'],
-        item['Total Marks'],
-        item['Obtained Marks'],
-        item['Result Percentage']
-    ]);
-
-    return { header, rows };
-}
+    private prepareDataForExcel(data: any[], reportType: string): any[] {
+        // Convert data to Excel-friendly format
+        return data.map(item => {
+            const excelRow: any = {};
+            
+            switch(reportType) {
+                case 'all':
+                    excelRow['Response ID'] = item['Response ID'];
+                    excelRow['StaffId'] = item['StaffId'];
+                    excelRow['User Name'] = item['User Name'];
+                    excelRow['User Phone'] = item['User Phone'];
+                    excelRow['Site_code'] = item['Site_code'];
+                    excelRow['Survey Title'] = item['Survey Title'];
+                    excelRow['Category Name'] = item['Category Name'];
+                    excelRow['Question'] = item['Question'];
+                    excelRow['Total score'] = item['Total score'];
+                    excelRow['Question Has Marks'] = item['Question Has Marks'] ? 'Yes' : 'No';
+                    excelRow['Marks obtained'] = item['Marks obtained'];
+                    break;
+                    
+                case 'category':
+                    excelRow['Survey Name'] = item['Survey Name'];
+                    excelRow['Category Name'] = item['Category Name'];
+                    excelRow['User Name'] = item['User Name'];
+                    excelRow['User Phone'] = item['User Phone'];
+                    excelRow['Total Marks'] = item['Total Marks'];
+                    excelRow['Obtained Marks'] = item['Obtained Marks'];
+                    excelRow['Question Category Score Percentage'] = item['Question Category Score Percentage'];
+                    break;
+                    
+                case 'survey':
+                    excelRow['Survey Name'] = item['Survey Name'];
+                    excelRow['User Name'] = item['User Name'];
+                    excelRow['User Phone'] = item['User Phone'];
+                    excelRow['Survey Id'] = item['Survey Id'];
+                    excelRow['Site_Code'] = item['Site_Code'];
+                    excelRow['Total Question'] = item['Total Question'];
+                    excelRow['Total Answer'] = item['Total Answer'];
+                    excelRow['Total Marks'] = item['Total Marks'];
+                    excelRow['Obtained Marks'] = item['Obtained Marks'];
+                    excelRow['Result Percentage'] = item['Result Percentage'];
+                    break;
+            }
+            
+            return excelRow;
+        });
+    }
 }
