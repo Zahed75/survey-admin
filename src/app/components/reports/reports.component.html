@@ -1,3 +1,5 @@
+<!--
+
 <div class="p-4">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
         <h2 class="text-xl font-semibold">Survey Reports</h2>
@@ -19,7 +21,7 @@
     </div>
 
     <p-tabView (onChange)="onTabChange($event)" [activeIndex]="activeTabIndex">
-        <!-- All Type Report Tab -->
+        
         <p-tabPanel header="All Type Report">
             <p-table
                 #allTypeTable
@@ -87,7 +89,7 @@
             </p-table>
         </p-tabPanel>
 
-        <!-- Category Wise Report Tab -->
+        
         <p-tabPanel header="Category Wise Report">
             <p-table
                 #categoryTable
@@ -152,7 +154,6 @@
         </p-tabPanel>
         
 
-        <!-- Survey Wise Report Tab -->
         <p-tabPanel header="Survey Wise Report">
             <p-table
                 #surveyTable
@@ -215,6 +216,258 @@
                 <ng-template pTemplate="emptymessage">
                     <tr>
                         <td colspan="10" class="text-center py-4 text-gray-500">
+                            No data available
+                        </td>
+                    </tr>
+                </ng-template>
+            </p-table>
+        </p-tabPanel>
+    </p-tabView>
+
+    <div *ngIf="!allTypeData.length && !categoryWiseData.length && !surveyWiseData.length && !loading" 
+         class="text-center text-gray-500 mt-10">
+        No survey reports available.
+    </div>
+</div> 
+-->
+
+
+
+
+
+
+
+<div class="p-4">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+        <h2 class="text-xl font-semibold">Survey Reports</h2>
+        <div class="flex flex-col items-end gap-2">
+            <button
+                (click)="downloadExcel()"
+                pButton
+                type="button"
+                icon="pi pi-download"
+                label="Download Excel Report (3 Sheets)"
+                class="p-button-sm p-button-success w-full sm:w-auto"
+                [disabled]="loading || (!allTypeData.length && !categoryWiseData.length && !surveyWiseData.length)"
+            ></button>
+            <small *ngIf="!allTypeData.length || !categoryWiseData.length || !surveyWiseData.length" 
+                   class="text-yellow-600 text-xs">
+                Please wait for all reports to load before downloading
+            </small>
+        </div>
+    </div>
+
+    <p-tabView (onChange)="onTabChange($event)" [activeIndex]="activeTabIndex">
+        <!-- All Type Report Tab -->
+        <p-tabPanel header="All Type Report">
+            <p-table
+                #allTypeTable
+                [value]="allTypeData"
+                [paginator]="true"
+                [rows]="10"
+                [rowsPerPageOptions]="[5, 10, 25, 50]"
+                [loading]="loading"
+                [globalFilterFields]="['User Name', 'Survey Title', 'Site_code', 'User Submitted Answer']"
+                [responsiveLayout]="responsiveLayout"
+            >
+                <ng-template pTemplate="caption">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                        <span class="p-input-icon-left w-full sm:w-80">
+                            <i class="pi pi-search"></i>
+                            <input
+                                pInputText
+                                type="text"
+                                placeholder="Search by name, survey, site or answer..."
+                                (input)="onSearchInput($event, allTypeTable)"
+                                class="w-full"
+                            />
+                        </span>
+                        <span class="text-sm text-gray-600 whitespace-nowrap">
+                            Showing {{allTypeData.length}} record(s)
+                        </span>
+                    </div>
+                </ng-template>
+
+                <ng-template pTemplate="header">
+                    <tr>
+                        <th pSortableColumn="Response ID">Response ID</th>
+                        <th pSortableColumn="StaffId">Staff ID</th>
+                        <th pSortableColumn="User Name">User Name</th>
+                        <th pSortableColumn="User Phone">Phone</th>
+                        <th pSortableColumn="Site_code">Site Code</th>
+                        <th pSortableColumn="Survey Title">Survey Title</th>
+                        <th pSortableColumn="Category Name">Category</th>
+                        <th pSortableColumn="Question">Question</th>
+                        <th pSortableColumn="Total score">Total Score</th>
+                        <th pSortableColumn="Marks obtained">Marks Obtained</th>
+                        <th pSortableColumn="Survey Submitted Date Time">Submitted Date</th>
+                        <th pSortableColumn="User Submitted Answer">User Answer</th>
+                    </tr>
+                </ng-template>
+
+                <ng-template pTemplate="body" let-item>
+                    <tr>
+                        <td>{{item['Response ID']}}</td>
+                        <td>{{item['StaffId']}}</td>
+                        <td>{{item['User Name']}}</td>
+                        <td>{{item['User Phone']}}</td>
+                        <td>{{item['Site_code']}}</td>
+                        <td>{{item['Survey Title']}}</td>
+                        <td>{{item['Category Name']}}</td>
+                        <td>{{item['Question']}}</td>
+                        <td>{{item['Total score']}}</td>
+                        <td>{{item['Marks obtained']}}</td>
+                        <td>{{item['Survey Submitted Date Time']}}</td>
+                        <td>{{item['User Submitted Answer']}}</td>
+                    </tr>
+                </ng-template>
+
+                <ng-template pTemplate="emptymessage">
+                    <tr>
+                        <td colspan="12" class="text-center py-4 text-gray-500">
+                            No data available
+                        </td>
+                    </tr>
+                </ng-template>
+            </p-table>
+        </p-tabPanel>
+
+        <!-- Category Wise Report Tab -->
+        <p-tabPanel header="Category Wise Report">
+            <p-table
+                #categoryTable
+                [value]="categoryWiseData"
+                [paginator]="true"
+                [rows]="10"
+                [rowsPerPageOptions]="[5, 10, 25, 50]"
+                [loading]="loading"
+                [globalFilterFields]="['Survey Name', 'Category Name', 'User Name', 'Remarks']"
+                [responsiveLayout]="responsiveLayout"
+            >
+                <ng-template pTemplate="caption">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                        <span class="p-input-icon-left w-full sm:w-80">
+                            <i class="pi pi-search"></i>
+                            <input
+                                pInputText
+                                type="text"
+                                placeholder="Search by survey, category, user or remarks..."
+                                (input)="onSearchInput($event, categoryTable)"
+                                class="w-full"
+                            />
+                        </span>
+                        <span class="text-sm text-gray-600 whitespace-nowrap">
+                            Showing {{categoryWiseData.length}} record(s)
+                        </span>
+                    </div>
+                </ng-template>
+
+                <ng-template pTemplate="header">
+                    <tr>
+                        <th pSortableColumn="Survey Name">Survey Name</th>
+                        <th pSortableColumn="Category Name">Category</th>
+                        <th pSortableColumn="User Name">User Name</th>
+                        <th pSortableColumn="User Phone">Phone</th>
+                        <th pSortableColumn="Total Marks">Total Marks</th>
+                        <th pSortableColumn="Obtained Marks">Obtained Marks</th>
+                        <th pSortableColumn="Question Category Score Percentage">Percentage</th>
+                        <th pSortableColumn="Response ID">Response ID</th>
+                        <th pSortableColumn="Staff ID">Staff ID</th>
+                        <th pSortableColumn="Remarks">Remarks</th>
+                    </tr>
+                </ng-template>
+
+                <ng-template pTemplate="body" let-item>
+                    <tr>
+                        <td>{{item['Survey Name']}}</td>
+                        <td>{{item['Category Name']}}</td>
+                        <td>{{item['User Name']}}</td>
+                        <td>{{item['User Phone']}}</td>
+                        <td>{{item['Total Marks']}}</td>
+                        <td>{{item['Obtained Marks']}}</td>
+                        <td>{{item['Question Category Score Percentage']}}</td>
+                        <td>{{item['Response ID']}}</td>
+                        <td>{{item['Staff ID']}}</td>
+                        <td>{{item['Remarks']}}</td>
+                    </tr>
+                </ng-template>
+
+                <ng-template pTemplate="emptymessage">
+                    <tr>
+                        <td colspan="10" class="text-center py-4 text-gray-500">
+                            No data available
+                        </td>
+                    </tr>
+                </ng-template>
+            </p-table>
+        </p-tabPanel>
+        
+
+        <!-- Survey Wise Report Tab -->
+        <p-tabPanel header="Survey Wise Report">
+            <p-table
+                #surveyTable
+                [value]="surveyWiseData"
+                [paginator]="true"
+                [rows]="10"
+                [rowsPerPageOptions]="[5, 10, 25, 50]"
+                [loading]="loading"
+                [globalFilterFields]="['Survey Name', 'User Name', 'Site_Code', 'Staff ID']"
+                [responsiveLayout]="responsiveLayout"
+            >
+                <ng-template pTemplate="caption">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                        <span class="p-input-icon-left w-full sm:w-80">
+                            <i class="pi pi-search"></i>
+                            <input
+                                pInputText
+                                type="text"
+                                placeholder="Search by survey, user, site or staff ID..."
+                                (input)="onSearchInput($event, surveyTable)"
+                                class="w-full"
+                            />
+                        </span>
+                        <span class="text-sm text-gray-600 whitespace-nowrap">
+                            Showing {{surveyWiseData.length}} record(s)
+                        </span>
+                    </div>
+                </ng-template>
+
+                <ng-template pTemplate="header">
+                    <tr>
+                        <th pSortableColumn="Survey Name">Survey Name</th>
+                        <th pSortableColumn="User Name">User Name</th>
+                        <th pSortableColumn="User Phone">Phone</th>
+                        <th pSortableColumn="Survey Id">Survey ID</th>
+                        <th pSortableColumn="Site_Code">Site Code</th>
+                        <th pSortableColumn="Total Question">Total Questions</th>
+                        <th pSortableColumn="Total Answer">Total Answers</th>
+                        <th pSortableColumn="Total Marks">Total Marks</th>
+                        <th pSortableColumn="Obtained Marks">Obtained Marks</th>
+                        <th pSortableColumn="Result Percentage">Percentage</th>
+                        <th pSortableColumn="Staff ID">Staff ID</th>
+                    </tr>
+                </ng-template>
+
+                <ng-template pTemplate="body" let-item>
+                    <tr>
+                        <td>{{item['Survey Name']}}</td>
+                        <td>{{item['User Name']}}</td>
+                        <td>{{item['User Phone']}}</td>
+                        <td>{{item['Survey Id']}}</td>
+                        <td>{{item['Site_Code']}}</td>
+                        <td>{{item['Total Question']}}</td>
+                        <td>{{item['Total Answer']}}</td>
+                        <td>{{item['Total Marks']}}</td>
+                        <td>{{item['Obtained Marks']}}</td>
+                        <td>{{item['Result Percentage']}}</td>
+                        <td>{{item['Staff ID']}}</td>
+                    </tr>
+                </ng-template>
+
+                <ng-template pTemplate="emptymessage">
+                    <tr>
+                        <td colspan="11" class="text-center py-4 text-gray-500">
                             No data available
                         </td>
                     </tr>
