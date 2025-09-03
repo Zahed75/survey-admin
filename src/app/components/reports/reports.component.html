@@ -236,7 +236,6 @@
 
 
 
-
 <div class="p-4">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
         <h2 class="text-xl font-semibold">Survey Reports</h2>
@@ -341,7 +340,7 @@
                 [rows]="10"
                 [rowsPerPageOptions]="[5, 10, 25, 50]"
                 [loading]="loading"
-                [globalFilterFields]="['Survey Name', 'Category Name', 'User Name', 'Remarks']"
+                [globalFilterFields]="['Survey Name', 'Category Name', 'User Name', 'Remarks', 'Response ID']"
                 [responsiveLayout]="responsiveLayout"
             >
                 <ng-template pTemplate="caption">
@@ -351,7 +350,7 @@
                             <input
                                 pInputText
                                 type="text"
-                                placeholder="Search by survey, category, user or remarks..."
+                                placeholder="Search by survey, category, user, remarks or response ID..."
                                 (input)="onSearchInput($event, categoryTable)"
                                 class="w-full"
                             />
@@ -364,37 +363,39 @@
 
                 <ng-template pTemplate="header">
                     <tr>
-                        <th pSortableColumn="Survey Name">Survey Name</th>
-                        <th pSortableColumn="Category Name">Category</th>
+                        <th pSortableColumn="Response ID">Response ID</th>
+                        <th pSortableColumn="StaffId">Staff ID</th>
                         <th pSortableColumn="User Name">User Name</th>
                         <th pSortableColumn="User Phone">Phone</th>
+                        <th pSortableColumn="Site_code">Site Code</th>
+                        <th pSortableColumn="Survey Name">Survey Name</th>
+                        <th pSortableColumn="Category Name">Category</th>
                         <th pSortableColumn="Total Marks">Total Marks</th>
                         <th pSortableColumn="Obtained Marks">Obtained Marks</th>
                         <th pSortableColumn="Question Category Score Percentage">Percentage</th>
-                        <th pSortableColumn="Response ID">Response ID</th>
-                        <th pSortableColumn="Staff ID">Staff ID</th>
                         <th pSortableColumn="Remarks">Remarks</th>
                     </tr>
                 </ng-template>
 
                 <ng-template pTemplate="body" let-item>
                     <tr>
-                        <td>{{item['Survey Name']}}</td>
-                        <td>{{item['Category Name']}}</td>
+                        <td>{{item['Response ID']}}</td>
+                        <td>{{item['StaffId']}}</td>
                         <td>{{item['User Name']}}</td>
                         <td>{{item['User Phone']}}</td>
+                        <td>{{item['Site_code']}}</td>
+                        <td>{{item['Survey Name']}}</td>
+                        <td>{{item['Category Name']}}</td>
                         <td>{{item['Total Marks']}}</td>
                         <td>{{item['Obtained Marks']}}</td>
                         <td>{{item['Question Category Score Percentage']}}</td>
-                        <td>{{item['Response ID']}}</td>
-                        <td>{{item['Staff ID']}}</td>
                         <td>{{item['Remarks']}}</td>
                     </tr>
                 </ng-template>
 
                 <ng-template pTemplate="emptymessage">
                     <tr>
-                        <td colspan="10" class="text-center py-4 text-gray-500">
+                        <td colspan="11" class="text-center py-4 text-gray-500">
                             No data available
                         </td>
                     </tr>
@@ -412,7 +413,7 @@
                 [rows]="10"
                 [rowsPerPageOptions]="[5, 10, 25, 50]"
                 [loading]="loading"
-                [globalFilterFields]="['Survey Name', 'User Name', 'Site_Code', 'Staff ID']"
+                [globalFilterFields]="['Survey Title', 'User Name', 'Site_code', 'StaffId', 'Response ID']"
                 [responsiveLayout]="responsiveLayout"
             >
                 <ng-template pTemplate="caption">
@@ -422,7 +423,7 @@
                             <input
                                 pInputText
                                 type="text"
-                                placeholder="Search by survey, user, site or staff ID..."
+                                placeholder="Search by survey, user, site, staff ID or response ID..."
                                 (input)="onSearchInput($event, surveyTable)"
                                 class="w-full"
                             />
@@ -435,39 +436,41 @@
 
                 <ng-template pTemplate="header">
                     <tr>
-                        <th pSortableColumn="Survey Name">Survey Name</th>
+                        <th pSortableColumn="Response ID">Response ID</th>
+                        <th pSortableColumn="StaffId">Staff ID</th>
                         <th pSortableColumn="User Name">User Name</th>
                         <th pSortableColumn="User Phone">Phone</th>
+                        <th pSortableColumn="Site_code">Site Code</th>
+                        <th pSortableColumn="Survey Title">Survey Title</th>
                         <th pSortableColumn="Survey Id">Survey ID</th>
-                        <th pSortableColumn="Site_Code">Site Code</th>
                         <th pSortableColumn="Total Question">Total Questions</th>
                         <th pSortableColumn="Total Answer">Total Answers</th>
                         <th pSortableColumn="Total Marks">Total Marks</th>
                         <th pSortableColumn="Obtained Marks">Obtained Marks</th>
                         <th pSortableColumn="Result Percentage">Percentage</th>
-                        <th pSortableColumn="Staff ID">Staff ID</th>
                     </tr>
                 </ng-template>
 
                 <ng-template pTemplate="body" let-item>
                     <tr>
-                        <td>{{item['Survey Name']}}</td>
+                        <td>{{item['Response ID']}}</td>
+                        <td>{{item['StaffId']}}</td>
                         <td>{{item['User Name']}}</td>
                         <td>{{item['User Phone']}}</td>
+                        <td>{{item['Site_code']}}</td>
+                        <td>{{item['Survey Title']}}</td>
                         <td>{{item['Survey Id']}}</td>
-                        <td>{{item['Site_Code']}}</td>
                         <td>{{item['Total Question']}}</td>
                         <td>{{item['Total Answer']}}</td>
                         <td>{{item['Total Marks']}}</td>
                         <td>{{item['Obtained Marks']}}</td>
                         <td>{{item['Result Percentage']}}</td>
-                        <td>{{item['Staff ID']}}</td>
                     </tr>
                 </ng-template>
 
                 <ng-template pTemplate="emptymessage">
                     <tr>
-                        <td colspan="11" class="text-center py-4 text-gray-500">
+                        <td colspan="12" class="text-center py-4 text-gray-500">
                             No data available
                         </td>
                     </tr>

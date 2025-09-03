@@ -168,7 +168,6 @@
 
 
 
-
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TableModule } from 'primeng/table';
@@ -305,30 +304,32 @@ export class ReportsComponent implements OnInit {
                     break;
                     
                 case 'category':
-                    excelRow['Survey Name'] = item['Survey Name'];
-                    excelRow['Category Name'] = item['Category Name'];
+                    excelRow['Response ID'] = item['Response ID']; // Updated field name
+                    excelRow['StaffId'] = item['StaffId']; // Updated field name
                     excelRow['User Name'] = item['User Name'];
                     excelRow['User Phone'] = item['User Phone'];
-                    excelRow['Obtained Marks'] = item['Obtained Marks'];
+                    excelRow['Site_code'] = item['Site_code']; // Updated field name
+                    excelRow['Survey Name'] = item['Survey Name'];
+                    excelRow['Category Name'] = item['Category Name'];
                     excelRow['Total Marks'] = item['Total Marks'];
+                    excelRow['Obtained Marks'] = item['Obtained Marks'];
                     excelRow['Question Category Score Percentage'] = item['Question Category Score Percentage'];
-                    excelRow['Response ID'] = item['Response ID'];
-                    excelRow['Staff ID'] = item['Staff ID'];
                     excelRow['Remarks'] = item['Remarks'];
                     break;
                     
                 case 'survey':
-                    excelRow['Survey Name'] = item['Survey Name'];
+                    excelRow['Response ID'] = item['Response ID']; // Updated field name
+                    excelRow['StaffId'] = item['StaffId']; // Updated field name
                     excelRow['User Name'] = item['User Name'];
                     excelRow['User Phone'] = item['User Phone'];
+                    excelRow['Site_code'] = item['Site_code']; // Updated field name
+                    excelRow['Survey Title'] = item['Survey Title']; // Updated field name
                     excelRow['Survey Id'] = item['Survey Id'];
-                    excelRow['Site_Code'] = item['Site_Code'];
                     excelRow['Total Question'] = item['Total Question'];
                     excelRow['Total Answer'] = item['Total Answer'];
                     excelRow['Total Marks'] = item['Total Marks'];
                     excelRow['Obtained Marks'] = item['Obtained Marks'];
                     excelRow['Result Percentage'] = item['Result Percentage'];
-                    excelRow['Staff ID'] = item['Staff ID'];
                     break;
             }
             
