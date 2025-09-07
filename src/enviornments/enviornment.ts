@@ -11,19 +11,19 @@ export const environmentCentral = {
 
 
 
-// export const survey_app = {
-//     production: false,
-//     apiBaseUrl: ' https://survey-backend.shwapno.app',
-// }
-
-
-
-
-
 export const survey_app = {
     production: false,
-    apiBaseUrl: ' http://127.0.0.1:9000',
+    apiBaseUrl: ' https://survey-backend.shwapno.app',
 }
+
+
+
+
+
+// export const survey_app = {
+//     production: false,
+//     apiBaseUrl: ' http://127.0.0.1:9000',
+// }
 
 
 
