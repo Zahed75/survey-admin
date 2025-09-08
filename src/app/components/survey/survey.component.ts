@@ -43,6 +43,7 @@ export class SurveyComponent implements OnInit {
         { label: 'Multiple Scoring', value: 'multiple_scoring' } // Added multiple scoring type
     ];
 
+
     constructor(
         private fb: FormBuilder,
         private messageService: MessageService,

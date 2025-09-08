@@ -164,14 +164,10 @@
                       <label class="ml-2">Required</label>
                     </div>
 
-                    <!-- Show Has Marks for all except linear and multiple_scoring -->
+                    <!-- Show Has Marks for all except linear -->
                     <div
                       class="flex items-center"
-                      *ngIf="
-                        !['linear', 'multiple_scoring'].includes(
-                          getQuestions(catIdx).at(qIdx).get('type')?.value
-                        )
-                      "
+                      *ngIf="getQuestions(catIdx).at(qIdx).get('type')?.value !== 'linear'"
                     >
                       <p-inputSwitch formControlName="hasMarks" class="mr-2"></p-inputSwitch>
                       <label>Has Marks</label>
@@ -241,6 +237,7 @@
                       >
                         <input pInputText formControlName="text" class="sm:col-span-7" placeholder="Option text" />
                         <p-inputNumber
+                          *ngIf="getQuestions(catIdx).at(qIdx).get('hasMarks')?.value"
                           formControlName="marks"
                           class="sm:col-span-4"
                           placeholder="Marks"
