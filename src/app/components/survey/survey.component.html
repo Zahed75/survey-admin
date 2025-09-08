@@ -164,7 +164,7 @@
                       <label class="ml-2">Required</label>
                     </div>
 
-                    <!-- Show Has Marks for all except linear -->
+                    <!-- Show Has Marks for all except linear (NOW includes multiple_scoring) -->
                     <div
                       class="flex items-center"
                       *ngIf="getQuestions(catIdx).at(qIdx).get('type')?.value !== 'linear'"
@@ -174,13 +174,11 @@
                     </div>
                   </div>
 
-                  <!-- Marks (simple types) -->
+                  <!-- Marks (question-level) -->
                   <div
                     *ngIf="
                       getQuestions(catIdx).at(qIdx).get('hasMarks')?.value &&
-                      !['linear', 'multiple_scoring'].includes(
-                        getQuestions(catIdx).at(qIdx).get('type')?.value
-                      )
+                      getQuestions(catIdx).at(qIdx).get('type')?.value !== 'linear'
                     "
                     class="flex items-center mt-4"
                   >
@@ -189,7 +187,7 @@
                   </div>
 
                   <!-- Multiple Choice -->
-                  <div *ngIf="getQuestions(catIdx).at(qIdx).get('type')?.value === 'choice'" class="mt-4">
+                  <div *ngIf="getQuestions(catIdx).at(qIdx).get('type')?.value === 'choice' " class="mt-4">
                     <label class="font-medium">Choices</label>
                     <div formArrayName="choices" class="space-y-2 mt-2">
                       <div
@@ -236,8 +234,8 @@
                         class="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center"
                       >
                         <input pInputText formControlName="text" class="sm:col-span-7" placeholder="Option text" />
+                        <!-- Per-choice marks remain as-is (visible) -->
                         <p-inputNumber
-                          *ngIf="getQuestions(catIdx).at(qIdx).get('hasMarks')?.value"
                           formControlName="marks"
                           class="sm:col-span-4"
                           placeholder="Marks"
